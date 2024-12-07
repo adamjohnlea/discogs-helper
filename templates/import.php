@@ -295,7 +295,11 @@ $content = '
     <p>Enter your Discogs username to import your collection.</p>
     <form method="post" action="?action=import">
         <label for="username">Discogs Username:</label>
-        <input type="text" id="username" name="username" required>
+        <input type="text" 
+               id="username" 
+               name="username" 
+               required 
+               placeholder="Enter your Discogs username...">
         <button type="submit">Import Collection</button>
     </form>
 </article>

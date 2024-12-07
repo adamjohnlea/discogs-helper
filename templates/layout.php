@@ -146,6 +146,18 @@
         .header-search button {
             margin: 0;
         }
+
+        /* Make the Discogs username input wider */
+        #username {
+            padding: 0.5rem;
+            width: 100%;
+            max-width: 800px; /* Increased from previous value */
+        }
+
+        form:has(#username) {
+            max-width: 800px; /* Match the input width */
+            width: 100%;
+        }
     </style>
     <?php echo $styles ?? ''; // Add any page-specific styles ?>
 </head>
@@ -156,6 +168,7 @@
             <nav>
                 <a href="/">Home</a>
                 <a href="?action=list">My Collection</a>
+                <a href="?action=import">Import Collection</a>
             </nav>
             <?php if (!isset($_GET['action']) || $_GET['action'] === 'list'): ?>
                 <form class="header-search" action="?action=list" method="GET">
