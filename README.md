@@ -41,7 +41,7 @@ A PHP application to manage your music collection using the Discogs API. Search,
    chmod -R 755 logs
 
 ## Directory Structure
-
+```
 discogs-helper/
 ├── config/                 # Configuration files
 ├── database/
@@ -52,7 +52,7 @@ discogs-helper/
 │       └── covers/       # Stored cover images
 ├── src/                   # PHP source files
 └── templates/             # HTML templates
-
+```
 ## Usage
 
 1. Start the development server:
