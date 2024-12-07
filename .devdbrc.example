@@ -1,0 +1,6 @@
+[
+  {
+    "type": "sqlite",
+    "path": "/database/discogs.sqlite"
+  }
+]

@@ -1,0 +1,16 @@
+{
+    "name": "your-name/discogs-helper",
+    "description": "A Discogs helper application",
+    "type": "project",
+    "require": {
+        "php": ">=8.3",
+        "guzzlehttp/guzzle": "^7.8",
+        "vlucas/phpdotenv": "^5.6"
+    },
+    "autoload": {
+        "psr-4": {
+            "DiscogsHelper\\": "src/",
+            "DiscogsHelper\\Database\\Migrations\\": "database/migrations/"
+        }
+    }
+}

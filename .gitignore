@@ -1,0 +1,38 @@
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Composer
+/vendor/
+composer.phar
+
+# IDE specific files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.phpstorm.meta.php
+_ide_helper.php
+
+# Application specific
+/public/images/covers/
+/database/*.sqlite
+!/database/.gitkeep
+.devdbrc
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Logs
+/logs/*
+!/logs/.gitkeep
+
+# Cache
+*.cache
+.php_cs.cache
+
+# Testing
+.phpunit.result.cache
+/phpunit.xml 
