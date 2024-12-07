@@ -1,14 +1,19 @@
 <?php
+$searchQuery = $_GET['q'] ?? null;
+$releases = $db->getAllReleases($searchQuery);
+
 $content = '
-<h1>My Releases</h1>
-<p>
-    <a href="?action=search">Search Discogs</a> |
-    <a href="?action=import">Import Collection</a>
-</p>
+<h1>My Releases' . ($searchQuery ? ': Search Results' : '') . '</h1>
+
 <div class="album-grid">';
 
-foreach ($db->getAllReleases() as $release) {
-    $content .= '
+if (empty($releases) && $searchQuery) {
+    $content .= '<p>No releases found matching "' . htmlspecialchars($searchQuery) . '"</p>';
+} elseif (empty($releases)) {
+    $content .= '<p>Your collection is empty. <a href="?action=search">Add some releases</a> or <a href="?action=import">import your Discogs collection</a>.</p>';
+} else {
+    foreach ($releases as $release) {
+        $content .= '
     <div class="album-card">
         ' . ($release->coverPath ? '<img src="' . htmlspecialchars($release->coverPath) . '" alt="Cover">' : '') . '
         <div class="details">
@@ -29,6 +34,7 @@ foreach ($db->getAllReleases() as $release) {
             </p>
         </div>
     </div>';
+    }
 }
 
 $content .= '</div>';

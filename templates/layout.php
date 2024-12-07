@@ -9,6 +9,7 @@
     
     <style>
         /* Layout improvements */
+        /* Override Water.css default max-width */
         body {
             max-width: none;
         }
@@ -17,20 +18,6 @@
             max-width: 1400px;
             margin: 0 auto;
             padding: 0 1rem;
-        }
-
-        /* Make the Discogs username input wider */
-        #username {
-            font-size: 1.5rem;
-            padding: 0.5rem;
-            width: 100%;
-            max-width: 800px; /* Much wider now */
-        }
-
-        /* Make the username form take up more space */
-        form:has(#username) {
-            max-width: 800px;
-            width: 100%;
         }
 
         /* Album grid improvements */
@@ -120,16 +107,67 @@
             margin-top: 2rem;
             border-top: 1px solid rgba(0, 0, 0, 0.1);
         }
+
+        /* Add just the search bar styling */
+        .header-search {
+            margin: 1rem 0;
+            text-align: center;
+        }
+
+        .header-search input[type="search"] {
+            width: 400px;
+            margin-right: 0.5rem;
+        }
+
+        /* Updated header layout */
+        .header-nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            margin: 1rem auto;
+            max-width: 1400px;
+            padding: 0 1rem;
+        }
+
+        .header-search {
+            display: flex;
+            flex: 0 0 auto;
+            gap: 0.5rem;
+            margin: 0;
+            max-width: 400px;
+        }
+
+        .header-search input[type="search"] {
+            flex: 1;
+            margin: 0;
+        }
+
+        .header-search button {
+            margin: 0;
+        }
     </style>
     <?php echo $styles ?? ''; // Add any page-specific styles ?>
 </head>
 <body>
     <header>
         <h1>Discogs Helper</h1>
-        <nav>
-            <a href="/">Home</a>
-            <a href="/list">My Collection</a>
-        </nav>
+        <div class="header-nav">
+            <nav>
+                <a href="/">Home</a>
+                <a href="?action=list">My Collection</a>
+            </nav>
+            <?php if (!isset($_GET['action']) || $_GET['action'] === 'list'): ?>
+                <form class="header-search" action="?action=list" method="GET">
+                    <input type="search" 
+                           name="q" 
+                           placeholder="Search your collection..."
+                           value="<?= htmlspecialchars($_GET['q'] ?? '') ?>"
+                           aria-label="Search collection">
+                    <button type="submit">Search</button>
+                </form>
+            <?php endif; ?>
+        </div>
     </header>
 
     <main>

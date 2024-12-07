@@ -64,12 +64,23 @@ final class Database
         ]);
     }
 
-    public function getAllReleases(): array
+    public function getAllReleases(string $search = null): array
     {
-        $stmt = $this->pdo->query('
-            SELECT * FROM releases 
-            ORDER BY date_added DESC
-        ');
+        $query = 'SELECT * FROM releases';
+        $params = [];
+        
+        if ($search) {
+            $query .= ' WHERE title LIKE :search 
+                       OR artist LIKE :search 
+                       OR format LIKE :search 
+                       OR format_details LIKE :search';
+            $params['search'] = '%' . $search . '%';
+        }
+        
+        $query .= ' ORDER BY date_added DESC';
+        
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute($params);
         
         return array_map(
             fn(array $row) => $this->createReleaseFromRow($row),
