@@ -166,7 +166,7 @@
         <h1>Discogs Helper</h1>
         <div class="header-nav">
             <nav>
-                <a href="/">Home</a>
+                <a href="?action=home">Home</a>
                 <a href="?action=search">Search Discogs</a>
                 <a href="?action=list">My Collection</a>
                 <a href="?action=import">Import Collection</a>

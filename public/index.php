@@ -20,7 +20,7 @@ $discogs = new DiscogsService(
     $config['discogs']['user_agent']
 );
 
-$action = $_GET['action'] ?? 'list';
+$action = $_GET['action'] ?? 'home';
 $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
 
 match ($action) {
@@ -29,5 +29,7 @@ match ($action) {
     'preview' => require __DIR__ . '/../templates/preview.php',
     'add' => require __DIR__ . '/../templates/add.php',
     'import' => require __DIR__ . '/../templates/import.php',
-    default => require __DIR__ . '/../templates/list.php',
+    'list' => require __DIR__ . '/../templates/list.php',
+    'home' => require __DIR__ . '/../templates/index.php',
+    // default => require __DIR__ . '/../templates/index.php',
 }; 
