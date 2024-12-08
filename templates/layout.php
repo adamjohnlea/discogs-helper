@@ -167,10 +167,11 @@
         <div class="header-nav">
             <nav>
                 <a href="/">Home</a>
+                <a href="?action=search">Search Discogs</a>
                 <a href="?action=list">My Collection</a>
                 <a href="?action=import">Import Collection</a>
             </nav>
-            <?php if (!isset($_GET['action']) || $_GET['action'] === 'list'): ?>
+            <?php // if (!isset($_GET['action']) || $_GET['action'] === 'list'): ?>
                 <form class="header-search" action="?action=list" method="GET">
                     <input type="search" 
                            name="q" 
@@ -179,7 +180,7 @@
                            aria-label="Search collection">
                     <button type="submit">Search</button>
                 </form>
-            <?php endif; ?>
+            <?php //endif; ?>
         </div>
     </header>
 
