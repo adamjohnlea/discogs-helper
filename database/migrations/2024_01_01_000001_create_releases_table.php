@@ -18,7 +18,7 @@ final class CreateReleasesTable
     public function up(): void
     {
         $this->pdo->exec('
-            CREATE TABLE releases (
+            CREATE TABLE IF NOT EXISTS releases (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 discogs_id INTEGER NOT NULL UNIQUE,
                 title TEXT NOT NULL,
@@ -36,8 +36,11 @@ final class CreateReleasesTable
             )
         ');
 
-        // Add index for discogs_id
-        $this->pdo->exec('CREATE INDEX idx_discogs_id ON releases(discogs_id)');
+        // Check if index exists before creating it
+        $stmt = $this->pdo->query("SELECT name FROM sqlite_master WHERE type='index' AND name='idx_discogs_id'");
+        if (!$stmt->fetch()) {
+            $this->pdo->exec('CREATE INDEX idx_discogs_id ON releases(discogs_id)');
+        }
     }
 
     public function down(): void

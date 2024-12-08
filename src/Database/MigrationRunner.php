@@ -60,9 +60,8 @@ final class MigrationRunner
 
     private function createMigrationsTable(): void
     {
-        $this->pdo->exec('DROP TABLE IF EXISTS migrations');
         $this->pdo->exec('
-            CREATE TABLE migrations (
+            CREATE TABLE IF NOT EXISTS migrations (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 migration VARCHAR(255) NOT NULL,
                 batch INTEGER NOT NULL,
