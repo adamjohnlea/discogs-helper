@@ -9,7 +9,7 @@ A PHP application to manage your music collection using the Discogs API. Search,
 ## Features
 
 - Search releases by artist/title or UPC/barcode
-- Preview release details before adding to collection
+- Preview release details before adding to (local) collection - currently not added to discogs
 - Select from available cover images
 - Import existing Discogs collection
 - View detailed release information
