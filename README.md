@@ -60,10 +60,30 @@ A PHP application to manage your music collection using the Discogs API. Search,
    - Click on any release to view its details
    - Use "Import Collection" to import your existing Discogs collection
 
+## Import Feature
+
+The collection import:
+- Processes releases in batches to handle rate limits
+- Automatically downloads cover images
+- Preserves original Discogs date added
+- Skips duplicates automatically
+- Shows progress with a visual indicator   
+
 ## Database
 
 The application uses SQLite for simplicity. The database file is automatically created at 
 database/discogs.sqlite when you first run the application.
+
+## Configuration
+
+The following environment variables are required:
+- DISCOGS_CONSUMER_KEY: Your Discogs API consumer key
+- DISCOGS_CONSUMER_SECRET: Your Discogs API consumer secret
+
+Optional configuration can be modified in config/config.php:
+- Database location
+- User agent string
+- API rate limiting parameters
 
 ## Security
 
@@ -78,6 +98,13 @@ database/discogs.sqlite when you first run the application.
 - API rate limiting is handled automatically
 - Duplicate releases are prevented
 - Failed operations are logged with details
+
+## Development
+
+- The application uses a simple PHP template system
+- CSS is included inline for simplicity
+- Error logging is done to the logs/ directory
+- Rate limiting automatically handles Discogs API restrictions
 
 ## Contributing
 
