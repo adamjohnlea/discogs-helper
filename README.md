@@ -2,8 +2,16 @@
 
 A PHP application to manage your music collection using the Discogs API. Search, preview, and save releases with cover art and detailed information.
 
+## Main Screen
+
 <p align="center">
-  <img src="docs/images/discogs-helper-example-image.png" alt="Discogs Helper Screenshot" width="1024">
+  <img src="docs/images/discogs-helper-example-image.png" alt="Discogs Helper Main Screen Screenshot" width="1024">
+</p>
+
+## Album Details
+
+<p align="center">
+  <img src="docs/images/discogs-helper-album-detail.png" alt="Discogs Helper Album Detail Screenshot" width="1024">
 </p>
 
 ## Features
