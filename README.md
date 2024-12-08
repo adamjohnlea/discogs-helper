@@ -34,8 +34,7 @@ A PHP application to manage your music collection using the Discogs API. Search,
 ## Installation
 
 1. Clone the repository:
-   git clone https://github.com/yourusername/discogs-helper.git then:<br>
-   `cd discogs-helper`
+   git clone https://github.com/yourusername/discogs-helper.git then: `cd discogs-helper`
 
 2. Install dependencies:
    `composer install`
@@ -43,8 +42,8 @@ A PHP application to manage your music collection using the Discogs API. Search,
 3. Create environment file:
    `cp .env.example .env`
 
-4. Configure your Discogs API credentials in .env:
-   `DISCOGS_CONSUMER_KEY=your_key_here`
+4. Configure your Discogs API credentials in .env:<br>
+   `DISCOGS_CONSUMER_KEY=your_key_here`<br>
    `DISCOGS_CONSUMER_SECRET=your_secret_here`
 
 5. Set up directory permissions:<br>
