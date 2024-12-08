@@ -11,7 +11,7 @@ A PHP application to manage your music collection using the Discogs API. Search,
 ## Album Details
 
 <p align="center">
-  <img src="docs/images/discogs-helper-album-detail.png" alt="Discogs Helper Album Detail Screenshot" width="1024">
+  <img src="docs/images/discogs-helper-release-detail.png" alt="Discogs Helper Album Detail Screenshot" width="1024">
 </p>
 
 ## Features
