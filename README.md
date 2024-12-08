@@ -132,7 +132,12 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Acknowledgments
 
-- Discogs API (https://www.discogs.com/developers) for providing the music database
+## Acknowledgments
+
+- [Discogs API](https://www.discogs.com/developers) for providing the music database
+- [SQLite](https://www.sqlite.org/) for reliable database storage
+- [GuzzleHTTP](https://docs.guzzlephp.org/) for HTTP client functionality
+- [phpdotenv](https://github.com/vlucas/phpdotenv) for environment configuration
 
 ## Support
 
