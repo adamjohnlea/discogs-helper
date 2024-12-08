@@ -40,6 +40,8 @@ A PHP application to manage your music collection using the Discogs API. Search,
    chmod -R 755 public/images/covers
    chmod -R 755 logs
 
+6. Run database migrations:
+   php bin/migrate.php
 ## Usage
 
 1. Start the development server:

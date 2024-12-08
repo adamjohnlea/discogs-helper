@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use DiscogsHelper\Database\Migrations\CreateWantlistTable;
+use DiscogsHelper\Database\MigrationRunner;
 
 $config = require __DIR__ . '/../config/config.php';
 
@@ -12,8 +12,8 @@ $config = require __DIR__ . '/../config/config.php';
 $pdo = new PDO("sqlite:{$config['database']['path']}");
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-// Run the specific migration
-$migration = new CreateWantlistTable($pdo);
-$migration->up();
+// Run migrations
+$runner = new MigrationRunner($pdo, __DIR__ . '/../database/migrations');
+$runner->run();
 
-echo "Wantlist table migration completed!\n"; 
+echo "Migrations completed successfully!\n"; 

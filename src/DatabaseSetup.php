@@ -6,7 +6,7 @@ namespace DiscogsHelper;
 
 use PDO;
 use RuntimeException;
-use DiscogsHelper\Migrations\CreateReleasesTable;
+use DiscogsHelper\Database\MigrationRunner;
 
 final class DatabaseSetup
 {
@@ -14,19 +14,14 @@ final class DatabaseSetup
     {
         $databaseDir = dirname($databasePath);
         Setup::ensureDirectoryExists($databaseDir);
-
-        // Ensure covers directory exists
         Setup::ensureDirectoryExists(__DIR__ . '/../public/images/covers');
 
         $pdo = new PDO("sqlite:{$databasePath}");
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         
-        // Run migrations if table doesn't exist
-        $tableExists = $pdo->query("SELECT name FROM sqlite_master WHERE type='table' AND name='releases'")->fetch();
-        if (!$tableExists) {
-            $migration = new CreateReleasesTable($pdo);
-            $migration->up();
-        }
+        // Run migrations
+        $runner = new MigrationRunner($pdo, __DIR__ . '/../database/migrations');
+        $runner->run();
         
         return $pdo;
     }
