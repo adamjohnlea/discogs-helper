@@ -16,7 +16,8 @@ composer.phar
 _ide_helper.php
 
 # Application specific
-/public/images/covers/
+/public/images/covers/*
+!/public/images/covers/.gitkeep
 /database/*.sqlite
 !/database/.gitkeep
 .devdbrc
