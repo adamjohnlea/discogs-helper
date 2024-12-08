@@ -172,14 +172,15 @@
                 <a href="?action=import">Import Collection</a>
             </nav>
             <?php // if (!isset($_GET['action']) || $_GET['action'] === 'list'): ?>
-                <form class="header-search" action="?action=list" method="GET">
-                    <input type="search" 
-                           name="q" 
-                           placeholder="Search your collection..."
-                           value="<?= htmlspecialchars($_GET['q'] ?? '') ?>"
-                           aria-label="Search collection">
-                    <button type="submit">Search</button>
-                </form>
+			<form class="header-search" method="GET">
+				<input type="hidden" name="action" value="list">
+				<input type="search"
+					   name="q"
+					   placeholder="Search your collection..."
+					   value="<?= htmlspecialchars($_GET['q'] ?? '') ?>"
+					   aria-label="Search collection">
+				<button type="submit">Search</button>
+			</form>
             <?php //endif; ?>
         </div>
     </header>
