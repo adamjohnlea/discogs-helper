@@ -1,5 +1,11 @@
 <?php
-$release = $db->getReleaseById($id);
+if (!$auth->isLoggedIn()) {
+    header('Location: ?action=login');
+    exit;
+}
+
+$userId = $auth->getCurrentUser()->id;
+$release = $db->getReleaseById($userId, $id);
 if (!$release) {
     header('HTTP/1.0 404 Not Found');
     echo 'Release not found';
