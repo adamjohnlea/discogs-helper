@@ -1,6 +1,12 @@
 <?php
 $searchQuery = $_GET['q'] ?? null;
-$releases = $db->getAllReleases($searchQuery);
+// Make sure user is logged in and get their ID from the session
+if (!isset($_SESSION['user_id'])) {
+    // Redirect to login if not logged in
+    header('Location: ?action=login');
+    exit;
+}
+$releases = $db->getAllReleases($_SESSION['user_id'], $searchQuery);
 
 $content = '
 <h1>My Releases' . ($searchQuery ? ': Search Results' : '') . '</h1>

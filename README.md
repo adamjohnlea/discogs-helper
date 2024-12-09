@@ -16,6 +16,7 @@ A PHP application to manage your music collection using the Discogs API. Search,
 
 ## Features
 
+- User authentication and personal collections # NEW
 - Search releases by artist/title or UPC/barcode
 - Preview release details before adding to (local) collection - currently not added to discogs
 - Select from available cover images
@@ -23,6 +24,7 @@ A PHP application to manage your music collection using the Discogs API. Search,
 - View detailed release information
 - SQLite database for simple deployment
 - Cover image storage and management
+- Secure user-specific data isolation # NEW
 
 ## Requirements
 
@@ -47,12 +49,13 @@ A PHP application to manage your music collection using the Discogs API. Search,
    `DISCOGS_CONSUMER_SECRET=your_secret_here`
 
 5. Set up directory permissions:<br>
-  `chmod -R 755 database`<br>
-  `chmod -R 755 public/images/covers`<br>
-  `chmod -R 755 logs`
+   `chmod -R 755 database`<br>
+   `chmod -R 755 public/images/covers`<br>
+   `chmod -R 755 logs`
 
 6. Run database migrations:<br>
    `php bin/migrate.php`
+
 ## Usage
 
 1. Start the development server:
@@ -61,7 +64,12 @@ A PHP application to manage your music collection using the Discogs API. Search,
 2. Open in your browser:
    http://localhost:8000
 
-3. Features:
+3. First-time setup: # NEW SECTION
+   - Register for a new account
+   - Log in to your account
+   - Your collection will be private to your account
+
+4. Features:
    - Click "Add New Release" to search for releases
    - Enter an artist/title or UPC/barcode
    - Click on a search result to view details
@@ -78,12 +86,19 @@ The collection import:
 - Automatically downloads cover images
 - Preserves original Discogs date added
 - Skips duplicates automatically
-- Shows progress with a visual indicator   
+- Shows progress with a visual indicator
+- Imports to your personal collection # NEW
 
 ## Database
 
-The application uses SQLite for simplicity. The database file is automatically created at 
+The application uses SQLite for simplicity. The database file is automatically created at
 database/discogs.sqlite when you first run the application.
+
+Database features: # NEW SECTION
+- Secure user authentication
+- Personal collections for each user
+- Automatic database migrations
+- Data isolation between users
 
 ## Configuration
 
@@ -95,13 +110,17 @@ Optional configuration can be modified in config/config.php:
 - Database location
 - User agent string
 - API rate limiting parameters
+- Authentication settings # NEW
 
 ## Security
 
+- User authentication with secure password hashing # NEW
+- Personal collections isolated by user # NEW
 - All user inputs are sanitized
 - Cover images are stored with randomized filenames
 - API credentials are stored in environment variables
 - Database file is outside web root
+- Session-based authentication # NEW
 
 ## Error Handling
 
@@ -109,6 +128,7 @@ Optional configuration can be modified in config/config.php:
 - API rate limiting is handled automatically
 - Duplicate releases are prevented
 - Failed operations are logged with details
+- Authentication failures are logged securely # NEW
 
 ## Development
 
@@ -116,6 +136,7 @@ Optional configuration can be modified in config/config.php:
 - CSS is included inline for simplicity
 - Error logging is done to the logs/ directory
 - Rate limiting automatically handles Discogs API restrictions
+- User authentication middleware # NEW
 
 ## Contributing
 
@@ -138,4 +159,14 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Support
 
-If you encounter any problems or have suggestions, please open an issue in the GitHub repository. 
+If you encounter any problems or have suggestions, please open an issue in the GitHub repository.
+
+## Security Considerations # NEW SECTION
+
+When deploying this application:
+1. Always use HTTPS in production
+2. Regularly update dependencies
+3. Monitor authentication logs
+4. Back up user data regularly
+5. Consider rate limiting login attempts
+6. Follow security best practices for session management

@@ -3,7 +3,10 @@
 set_time_limit(0);
 ini_set('memory_limit', '256M');
 
-session_start();
+// Replace direct session_start() with a check
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Only reset session if explicitly requested
 if (isset($_GET['reset'])) {
@@ -52,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['username'])) {
             $response = $discogs->client->get("/users/{$username}/collection/folders/0/releases", [
                 'query' => [
                     'page' => 1,
-                    'per_page' => 1
+                    'per_page' => 50  // Set this to match your batch size
                 ]
             ]);
             
@@ -63,15 +66,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['username'])) {
             }
 
             $_SESSION['import_progress'] = [
-                'username' => $username,
-                'page' => 1,
-                'total_pages' => $data['pagination']['pages'],
-                'processed' => 0,
-                'total' => $data['pagination']['items'],
-                'processing' => false,
-                'last_update' => time(),
-                'current_action' => 'Starting import...',
-                'items_per_batch' => 5  // Process 5 items at a time
+                    'username' => $username,
+                    'page' => 1,
+                    'total_pages' => $data['pagination']['pages'],
+                    'processed' => 0,
+                    'total' => $data['pagination']['items'],
+                    'processing' => false,
+                    'last_update' => time(),
+                    'current_action' => 'Starting import...',
+                    'items_per_batch' => 5  // Process 5 items at a time
             ];
         }
 
@@ -100,7 +103,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['username'])) {
                 
                 try {
                     // Check if release already exists before making any API calls
-                    if ($db->getDiscogsReleaseId((int)$item['id'])) {
+                    $currentUserId = $auth->getCurrentUser()->id;
+
+                    // Check if release already exists before making any API calls
+                    if ($db->getDiscogsReleaseId($currentUserId, (int)$item['id'])) {
                         logImportError("Skipping existing release {$item['id']} (early check)");
                         $progress['processed']++;
                         $progress['last_update'] = time();
@@ -149,8 +155,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['username'])) {
 
                     $progress['current_action'] = "Saving to database...";
                     $_SESSION['import_progress'] = $progress;
-                    
+
                     $db->saveRelease(
+                        userId: $currentUserId,
                         discogsId: (int)$release['id'],
                         title: $release['title'],
                         artist: implode(', ', array_column($release['artists'], 'name')),
@@ -227,9 +234,9 @@ $content = '
 <article>
     <h2>Importing collection for ' . htmlspecialchars($progress['username']) . '</h2>
     <div>
-        <p>Page <span id="current-page">' . $progress['page'] . '</span> of <span id="total-pages">' . $progress['total_pages'] . '</span></p>
-        <p>Processed <span id="processed-count">' . $progress['processed'] . '</span> of <span id="total-count">' . $progress['total'] . '</span> releases</p>
-    </div>
+    <p>Processing page <span id="current-page">' . $progress['page'] . '</span> of <span id="total-pages">' . $progress['total_pages'] . '</span></p>
+    <p>Imported <span id="processed-count">' . $progress['processed'] . '</span> of <span id="total-count">' . $progress['total'] . '</span> releases</p>
+</div>
     
     <progress id="progress-bar" value="' . $progress['processed'] . '" max="' . $progress['total'] . '"></progress>
     

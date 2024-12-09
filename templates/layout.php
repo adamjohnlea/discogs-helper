@@ -167,21 +167,29 @@
         <div class="header-nav">
             <nav>
                 <a href="?action=home">Home</a>
-                <a href="?action=search">Search Discogs</a>
-                <a href="?action=list">My Collection</a>
-                <a href="?action=import">Import Collection</a>
+                <?php if ($auth->isLoggedIn()): ?>
+				<a href="?action=search">Search Discogs</a>
+				<a href="?action=list">My Collection</a>
+				<a href="?action=import">Import Collection</a>
+				<span>Welcome, <?= htmlspecialchars($auth->getCurrentUser()->username) ?></span>
+				<a href="?action=logout">Logout</a>
+                <?php else: ?>
+				<a href="?action=login">Login</a>
+				<a href="?action=register">Register</a>
+                <?php endif; ?>
             </nav>
-            <?php // if (!isset($_GET['action']) || $_GET['action'] === 'list'): ?>
-			<form class="header-search" method="GET">
-				<input type="hidden" name="action" value="list">
-				<input type="search"
-					   name="q"
-					   placeholder="Search your collection..."
-					   value="<?= htmlspecialchars($_GET['q'] ?? '') ?>"
-					   aria-label="Search collection">
-				<button type="submit">Search</button>
-			</form>
-            <?php //endif; ?>
+            <?php // Only show search form for logged-in users ?>
+            <?php if ($auth->isLoggedIn() && (!isset($_GET['action']) || $_GET['action'] === 'list')): ?>
+				<form class="header-search" method="GET">
+					<input type="hidden" name="action" value="list">
+					<input type="search"
+						   name="q"
+						   placeholder="Search your collection..."
+						   value="<?= htmlspecialchars($_GET['q'] ?? '') ?>"
+						   aria-label="Search collection">
+					<button type="submit">Search</button>
+				</form>
+            <?php endif; ?>
         </div>
     </header>
 
