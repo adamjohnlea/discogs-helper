@@ -171,8 +171,8 @@
 				<a href="?action=search">Search Discogs</a>
 				<a href="?action=list">My Collection</a>
 				<a href="?action=import">Import Collection</a>
+					<a href="?action=logout">Logout</a>
 				<span>Welcome, <?= htmlspecialchars($auth->getCurrentUser()->username) ?></span>
-				<a href="?action=logout">Logout</a>
                 <?php else: ?>
 				<a href="?action=login">Login</a>
 				<a href="?action=register">Register</a>
