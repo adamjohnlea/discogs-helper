@@ -7,6 +7,7 @@ namespace DiscogsHelper;
 use PDO;
 use RuntimeException;
 use DiscogsHelper\Exceptions\DuplicateReleaseException;
+use DiscogsHelper\Exceptions\DuplicateDiscogsUsernameException;
 
 final class Database
 {
@@ -218,4 +219,126 @@ final class Database
             updatedAt: $row['updated_at']
         );
     }
+
+    public function createUserProfile(UserProfile $profile): void
+    {
+        // Check for duplicate Discogs username if one is provided
+        if ($profile->discogsUsername !== null) {
+            $existing = $this->getProfileByDiscogsUsername($profile->discogsUsername);
+            if ($existing !== null) {
+                throw new DuplicateDiscogsUsernameException($profile->discogsUsername);
+            }
+        }
+
+        $stmt = $this->pdo->prepare('
+            INSERT INTO user_profiles (
+                user_id, location, discogs_username,
+                discogs_consumer_key, discogs_consumer_secret,
+                created_at, updated_at
+            ) VALUES (
+                :user_id, :location, :discogs_username,
+                :discogs_consumer_key, :discogs_consumer_secret,
+                :created_at, :updated_at
+            )
+        ');
+
+        $stmt->execute([
+            'user_id' => $profile->userId,
+            'location' => $profile->location,
+            'discogs_username' => $profile->discogsUsername,
+            'discogs_consumer_key' => $profile->discogsConsumerKey,
+            'discogs_consumer_secret' => $profile->discogsConsumerSecret,
+            'created_at' => $profile->createdAt,
+            'updated_at' => $profile->updatedAt
+        ]);
+    }
+
+    public function getUserProfile(int $userId): ?UserProfile
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT * FROM user_profiles WHERE user_id = :user_id
+        ');
+
+        $stmt->execute(['user_id' => $userId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$row) {
+            return null;
+        }
+
+        return new UserProfile(
+            id: (int)$row['id'],
+            userId: (int)$row['user_id'],
+            location: $row['location'],
+            discogsUsername: $row['discogs_username'],
+            discogsConsumerKey: $row['discogs_consumer_key'],
+            discogsConsumerSecret: $row['discogs_consumer_secret'],
+            createdAt: $row['created_at'],
+            updatedAt: $row['updated_at']
+        );
+    }
+
+    public function updateUserProfile(UserProfile $profile): void
+    {
+        $stmt = $this->pdo->prepare('
+            UPDATE user_profiles SET
+                location = :location,
+                discogs_username = :discogs_username,
+                discogs_consumer_key = :discogs_consumer_key,
+                discogs_consumer_secret = :discogs_consumer_secret,
+                updated_at = :updated_at
+            WHERE user_id = :user_id
+        ');
+
+        $stmt->execute([
+            'user_id' => $profile->userId,
+            'location' => $profile->location,
+            'discogs_username' => $profile->discogsUsername,
+            'discogs_consumer_key' => $profile->discogsConsumerKey,
+            'discogs_consumer_secret' => $profile->discogsConsumerSecret,
+            'updated_at' => $profile->updatedAt
+        ]);
+    }
+
+    public function getProfileByDiscogsUsername(string $discogsUsername): ?UserProfile
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT * FROM user_profiles WHERE discogs_username = :discogs_username
+        ');
+
+        $stmt->execute(['discogs_username' => $discogsUsername]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$row) {
+            return null;
+        }
+
+        return new UserProfile(
+            id: (int)$row['id'],
+            userId: (int)$row['user_id'],
+            location: $row['location'],
+            discogsUsername: $row['discogs_username'],
+            discogsConsumerKey: $row['discogs_consumer_key'],
+            discogsConsumerSecret: $row['discogs_consumer_secret'],
+            createdAt: $row['created_at'],
+            updatedAt: $row['updated_at']
+        );
+    }
+
+    public function updateUserPassword(int $userId, string $newPassword): void
+    {
+        $stmt = $this->pdo->prepare('
+            UPDATE users 
+            SET password_hash = :password_hash,
+                updated_at = :updated_at
+            WHERE id = :id
+        ');
+
+        $stmt->execute([
+            'id' => $userId,
+            'password_hash' => password_hash($newPassword, PASSWORD_DEFAULT),
+            'updated_at' => date('Y-m-d H:i:s')
+        ]);
+    }
+
 }

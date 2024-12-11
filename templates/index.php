@@ -1,4 +1,10 @@
 <?php
+/** @var Auth $auth Authentication instance */
+/** @var string|null $content Main content HTML */
+/** @var string|null $styles Page-specific styles */
+
+use DiscogsHelper\Auth;
+
 $content = '
 <div class="welcome-section">
     <h1>Welcome to Discogs Helper</h1>

@@ -32,6 +32,7 @@ A PHP application to manage your music collection using the Discogs API. Search,
 - SQLite 3
 - Composer
 - Discogs API credentials
+- Discogs account (for collection import and search)
 
 ## Installation
 

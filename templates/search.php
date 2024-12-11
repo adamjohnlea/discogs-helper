@@ -1,4 +1,12 @@
 <?php
+/** @var Auth $auth Authentication instance */
+/** @var DiscogsService $discogs Discogs service instance */
+/** @var string|null $content Main content HTML */
+/** @var string|null $styles Page-specific styles */
+
+use DiscogsHelper\Auth;
+use DiscogsHelper\DiscogsService;
+
 $content = '
 <div class="search-section">
     <h1>Search Releases</h1>

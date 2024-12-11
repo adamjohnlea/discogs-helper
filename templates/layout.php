@@ -166,16 +166,17 @@
         <h1>Discogs Helper</h1>
         <div class="header-nav">
             <nav>
-                <a href="?action=home">Home</a>
+				<a href="?action=home">Home</a>
                 <?php if ($auth->isLoggedIn()): ?>
-				<a href="?action=search">Search Discogs</a>
-				<a href="?action=list">My Collection</a>
-				<a href="?action=import">Import Collection</a>
+					<a href="?action=search">Search Discogs</a>
+					<a href="?action=list">My Collection</a>
+					<a href="?action=import">Import Collection</a>
+					<a href="?action=profile">Profile</a>
 					<a href="?action=logout">Logout</a>
-				<span>Welcome, <?= htmlspecialchars($auth->getCurrentUser()->username) ?></span>
+					<span>Welcome, <?= htmlspecialchars($auth->getCurrentUser()->username) ?></span>
                 <?php else: ?>
-				<a href="?action=login">Login</a>
-				<a href="?action=register">Register</a>
+					<a href="?action=login">Login</a>
+					<a href="?action=register">Register</a>
                 <?php endif; ?>
             </nav>
             <?php // Only show search form for logged-in users ?>
