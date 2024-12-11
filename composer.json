@@ -9,6 +9,7 @@
     "autoload": {
         "psr-4": {
             "DiscogsHelper\\": "src/",
+            "DiscogsHelper\\Security\\": "src/Security/",
             "DiscogsHelper\\Database\\Migrations\\": "database/migrations/"
         }
     }

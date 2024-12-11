@@ -199,6 +199,7 @@ try {
 
 		<div class="actions">
 			<form action="?action=add" method="POST">
+                <?= Csrf::getFormField() ?>
 				<input type="hidden" name="id" value="<?= $release['id'] ?>">
 				<input type="hidden" name="selected_image" id="selected_image"
 					   value="<?= !empty($release['images']) ? htmlspecialchars($release['images'][0]['uri']) : '' ?>">

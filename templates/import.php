@@ -231,6 +231,7 @@ if (isset($error)) {
     <div role="alert" class="error">
         ' . htmlspecialchars($error) . '
         <form method="post" action="?action=import">
+         <?= Csrf::getFormField() ?>
             <input type="hidden" name="username" value="' . htmlspecialchars($progress['username'] ?? '') . '">
             <button type="submit">Try Again</button>
             <a href="?action=import&reset=1" role="button" class="secondary">Start Over</a>

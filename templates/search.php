@@ -21,6 +21,7 @@ $content = '
     <h1>Search Releases</h1>
     
     <form class="search-form" method="GET">
+     <?= Csrf::getFormField() ?>
         <input type="hidden" name="action" value="search">
         <div class="search-options">
             <label class="search-type">

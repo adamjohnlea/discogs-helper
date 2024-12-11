@@ -52,4 +52,22 @@ final class Session
         self::initialize();
         return !empty($_SESSION['profile_errors']);
     }
+
+    public static function remove(string $key): void
+    {
+        self::initialize();
+        unset($_SESSION[$key]);
+    }
+
+    public static function get(string $key, mixed $default = null): mixed
+    {
+        self::initialize();
+        return $_SESSION[$key] ?? $default;
+    }
+
+    public static function set(string $key, mixed $value): void
+    {
+        self::initialize();
+        $_SESSION[$key] = $value;
+    }
 }

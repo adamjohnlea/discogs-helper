@@ -13,6 +13,7 @@ $content = '
     ' . ($error ?? '') . '
     
     <form method="POST" action="?action=register" class="auth-form">
+     <?= Csrf::getFormField() ?>
         <div>
             <label for="username">Username</label>
             <input type="text" 

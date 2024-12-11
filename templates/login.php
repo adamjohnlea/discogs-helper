@@ -6,6 +6,8 @@
 /** @var string|null $auth_message Authentication message from session */
 
 use DiscogsHelper\Auth;
+use DiscogsHelper\Logger;
+use DiscogsHelper\Security\Csrf;
 
 $auth_message = $auth_message ?? null;
 
@@ -17,7 +19,12 @@ $content = '
     
     ' . ($auth_message ? '<div class="auth-message">' . htmlspecialchars($auth_message) . '</div>' : '') . '
     
-    <form method="POST" action="?action=login" class="auth-form">
+    <form method="POST" action="?action=login" class="auth-form">';
+
+$csrfToken = Csrf::generate();
+
+$content .= '
+        <input type="hidden" name="csrf_token" value="' . htmlspecialchars($csrfToken) . '">
         <div>
             <label for="username">Username</label>
             <input type="text" 
