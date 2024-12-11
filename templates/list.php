@@ -1,4 +1,12 @@
 <?php
+/** @var Auth $auth Authentication instance */
+/** @var Database $db Database instance */
+/** @var string|null $content Main content HTML */
+/** @var string|null $styles Page-specific styles */
+
+use DiscogsHelper\Auth;
+use DiscogsHelper\Database;
+
 $searchQuery = $_GET['q'] ?? null;
 // Make sure user is logged in and get their ID from the session
 if (!isset($_SESSION['user_id'])) {

@@ -1,4 +1,14 @@
 <?php
+/** @var Auth $auth Authentication instance */
+/** @var Database $db Database instance */
+/** @var DiscogsService $discogs Discogs service instance */
+/** @var string|null $content Main content HTML */
+/** @var string|null $styles Page-specific styles */
+
+use DiscogsHelper\Auth;
+use DiscogsHelper\Database;
+use DiscogsHelper\DiscogsService;
+
 if (!isset($_GET['id']) && !isset($_POST['id'])) {
     header('Location: ?action=search');
     exit;

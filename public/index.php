@@ -8,6 +8,8 @@ use DiscogsHelper\Database;
 use DiscogsHelper\DatabaseSetup;
 use DiscogsHelper\DiscogsService;
 use DiscogsHelper\Auth;
+use DiscogsHelper\UserProfile;
+use DiscogsHelper\Exceptions\DuplicateDiscogsUsernameException;
 
 $config = require __DIR__ . '/../config/config.php';
 
@@ -104,6 +106,88 @@ if (isset($_SESSION['auth_message'])) {
     unset($_SESSION['auth_message']);
 }
 
+function handleProfileUpdate(Auth $auth, Database $db): void
+{
+    if (!$auth->isLoggedIn()) {
+        header('Location: ?action=login');
+        exit;
+    }
+
+    $userId = $auth->getCurrentUser()->id;
+    $currentProfile = $db->getUserProfile($userId);
+    $errors = [];
+
+    // Validate password change if attempted
+    $passwordChanged = false;
+    if (!empty($_POST['new_password']) || !empty($_POST['confirm_password'])) {
+        if (empty($_POST['current_password'])) {
+            $errors[] = 'Current password is required to change password';
+        } elseif (!$auth->getCurrentUser()->verifyPassword($_POST['current_password'])) {
+            $errors[] = 'Current password is incorrect';
+        } elseif ($_POST['new_password'] !== $_POST['confirm_password']) {
+            $errors[] = 'New passwords do not match';
+        } elseif (strlen($_POST['new_password']) < 8) {
+            $errors[] = 'New password must be at least 8 characters long';
+        } else {
+            $passwordChanged = true;
+        }
+    }
+
+    // Handle profile updates if no password errors
+    if (empty($errors)) {
+        try {
+            // Start with current profile or create new one
+            $updatedProfile = $currentProfile ?? UserProfile::create(
+                userId: $userId
+            );
+
+            // Create updated profile with new values
+            $updatedProfile = new UserProfile(
+                id: $updatedProfile->id,
+                userId: $userId,
+                location: $_POST['location'] ?: null,
+                discogsUsername: $_POST['discogs_username'] ?: null,
+                discogsConsumerKey: $_POST['discogs_consumer_key'] ?: null,
+                discogsConsumerSecret: $_POST['discogs_consumer_secret'] ?: null,
+                createdAt: $updatedProfile->createdAt,
+                updatedAt: date('Y-m-d H:i:s')
+            );
+
+            // Update or create profile
+            if ($currentProfile) {
+                $db->updateUserProfile($updatedProfile);
+            } else {
+                $db->createUserProfile($updatedProfile);
+            }
+
+            // Handle password update if needed
+            if ($passwordChanged) {
+                $db->updateUserPassword(
+                    userId: $userId,
+                    newPassword: $_POST['new_password']
+                );
+            }
+
+            // Redirect with success message
+            header('Location: ?action=profile&success=true');
+            exit;
+
+        } catch (DuplicateDiscogsUsernameException $e) {
+            $errors[] = $e->getMessage();
+        } catch (Exception $e) {
+            // Log the error for debugging
+            error_log($e->getMessage());
+            $errors[] = 'An error occurred while saving your profile';
+        }
+    }
+
+    // If we get here, there were errors
+    // Store errors in session and redirect back to form
+    $_SESSION['profile_errors'] = $errors;
+    header('Location: ?action=profile_edit');
+    exit;
+}
+
 match ($action) {
     'search' => require __DIR__ . '/../templates/search.php',
     'view' => require __DIR__ . '/../templates/view.php',
@@ -113,5 +197,8 @@ match ($action) {
     'list' => require __DIR__ . '/../templates/list.php',
     'login' => require __DIR__ . '/../templates/login.php',
     'register' => require __DIR__ . '/../templates/register.php',
+    'profile' => require __DIR__ . '/../templates/profile.php',
+    'profile_edit' => require __DIR__ . '/../templates/profile_edit.php',
+    'profile_update' => handleProfileUpdate($auth, $db),
     default => require __DIR__ . '/../templates/index.php',
 };

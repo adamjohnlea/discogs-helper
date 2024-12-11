@@ -1,4 +1,15 @@
 <?php
+/** @var Auth $auth Authentication instance */
+/** @var Database $db Database instance */
+/** @var DiscogsService $discogs Discogs service instance */
+/** @var string|null $content Main content HTML */
+/** @var string|null $styles Page-specific styles */
+/** @var int|null $id Release ID */
+
+use DiscogsHelper\Auth;
+use DiscogsHelper\Database;
+use DiscogsHelper\DiscogsService;
+
 if (!isset($_GET['id'])) {
     header('Location: ?action=search');
     exit;
@@ -21,10 +32,10 @@ try {
             margin: 0 auto;
             padding: 20px;
         }
-        .cover {
-            max-width: 300px;
-            height: auto;
-        }
+        /*.cover {*/
+        /*    max-width: 300px;*/
+        /*    height: auto;*/
+        /*}*/
         .error {
             color: red;
             padding: 10px;
@@ -71,9 +82,9 @@ try {
             cursor: pointer;
             text-align: center;
         }
-        .image-option.selected {
-            border-color: #4CAF50;
-        }
+        /*.image-option.selected {*/
+        /*    border-color: #4CAF50;*/
+        /*}*/
         .image-option img {
             max-width: 100%;
             height: auto;

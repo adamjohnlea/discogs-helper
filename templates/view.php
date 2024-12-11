@@ -1,4 +1,13 @@
 <?php
+/** @var Auth $auth Authentication instance */
+/** @var Database $db Database instance */
+/** @var string|null $content Main content HTML */
+/** @var string|null $styles Page-specific styles */
+/** @var int|null $id Release ID */
+
+use DiscogsHelper\Auth;
+use DiscogsHelper\Database;
+
 if (!$auth->isLoggedIn()) {
     header('Location: ?action=login');
     exit;

@@ -1,4 +1,11 @@
 <?php
+/** @var Auth $auth Authentication instance */
+/** @var string|null $content Main content HTML */
+/** @var string|null $styles Page-specific styles */
+/** @var string|null $error Error message if registration failed */
+
+use DiscogsHelper\Auth;
+
 $content = '
 <div class="auth-container">
     <h1>Create Account</h1>

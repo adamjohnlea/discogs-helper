@@ -1,4 +1,12 @@
 <?php
+/** @var Auth $auth Authentication instance */
+/** @var string|null $content Main content HTML */
+/** @var string|null $styles Page-specific styles */
+/** @var string|null $error Error message if authentication failed */
+/** @var string|null $auth_message Authentication message from session */
+
+use DiscogsHelper\Auth;
+
 $auth_message = $auth_message ?? null;
 
 $content = '
