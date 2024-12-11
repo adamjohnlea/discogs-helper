@@ -46,9 +46,12 @@ if (in_array($action, ['search', 'import', 'view', 'preview', 'add'])) {
     $discogs = createDiscogsService($auth, $db);
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' ||
+    (isset($_GET['check_progress']) && $_GET['action'] === 'import')) {
     try {
-        Csrf::validateOrFail($_POST['csrf_token'] ?? null);
+        // Check for CSRF token in either POST data or header
+        $token = $_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null;
+        Csrf::validateOrFail($token);
 
         if ($action === 'register') {
             try {
@@ -105,9 +108,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     } catch (SecurityException $e) {
         Logger::security('CSRF validation failed');
-        $error = '<div class="error">Invalid request. Please try again.</div>';
 
-        // Return to the appropriate form based on the action
+        // If this is an AJAX request, send JSON response
+        if (isset($_GET['check_progress'])) {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Invalid security token']);
+            exit;
+        }
+
+        // Otherwise show error in template
+        $error = '<div class="error">Invalid request. Please try again.</div>';
         switch ($action) {
             case 'import':
                 require __DIR__ . '/../templates/import.php';

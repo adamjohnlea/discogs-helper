@@ -1,4 +1,5 @@
 <?php
+// templates/import.php
 /** @var Auth $auth Authentication instance */
 /** @var Database $db Database instance */
 /** @var DiscogsService $discogs Discogs service instance */
@@ -12,6 +13,7 @@ use DiscogsHelper\Database;
 use DiscogsHelper\DiscogsService;
 use DiscogsHelper\Logger;
 use DiscogsHelper\Session;
+use DiscogsHelper\Security\Csrf;
 use GuzzleHttp\Exception\GuzzleException;
 
 // Check if user has valid Discogs credentials
@@ -119,13 +121,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['username'])) {
                             continue;
                         }
 
-                        $progress['current_action'] = "Fetching release {$item['id']}...";
+                        $progress['current_action'] = "Processing release {$item['id']}...";
                         $_SESSION['import_progress'] = $progress;
 
                         $release = $discogs->getRelease($item['id']);
-
-                        $progress['current_action'] = "Processing release details...";
-                        $_SESSION['import_progress'] = $progress;
 
                         $formatDetails = array_map(function($format) {
                             return $format['name'] . (!empty($format['descriptions'])
@@ -135,22 +134,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['username'])) {
 
                         $coverPath = null;
                         if (!empty($release['images'][0]['uri'])) {
-                            $progress['current_action'] = "Downloading cover image for {$release['title']}...";
+                            $progress['current_action'] = "Downloading cover image...";
                             $_SESSION['import_progress'] = $progress;
                             try {
                                 $coverPath = $discogs->downloadCover($release['images'][0]['uri']);
-                                if (!$coverPath) {
-                                    Logger::error("Failed to download cover for release {$release['id']}: {$release['title']}");
-                                }
                             } catch (Exception $e) {
-                                Logger::error("Error downloading cover for release {$release['id']}: " . $e->getMessage());
+                                Logger::error("Error downloading cover: " . $e->getMessage());
                             }
-                        }
-
-                        // Verify cover file exists after download
-                        if ($coverPath && !file_exists(__DIR__ . '/../public/' . $coverPath)) {
-                            Logger::error("Cover file missing after download for release {$release['id']}: $coverPath");
-                            $coverPath = null;
                         }
 
                         $progress['current_action'] = "Saving to database...";
@@ -231,7 +221,7 @@ if (isset($error)) {
     <div role="alert" class="error">
         ' . htmlspecialchars($error) . '
         <form method="post" action="?action=import">
-         <?= Csrf::getFormField() ?>
+            ' . Csrf::getFormField() . '
             <input type="hidden" name="username" value="' . htmlspecialchars($progress['username'] ?? '') . '">
             <button type="submit">Try Again</button>
             <a href="?action=import&reset=1" role="button" class="secondary">Start Over</a>
@@ -255,6 +245,7 @@ if ($progress) {
         ' . (!($progress['processing'] ?? false) ? '
             ' . ($progress['processed'] < $progress['total'] ? '
             <form method="post" action="?action=import" id="continue-form">
+                ' . Csrf::getFormField() . '
                 <input type="hidden" name="username" value="' . htmlspecialchars($progress['username']) . '">
                 <button type="submit">Continue Import</button>
                 <a href="?action=import&reset=1" role="button" class="secondary">Start Over</a>
@@ -274,6 +265,7 @@ if ($progress) {
     <article>
         <p>Enter your Discogs username to import your collection.</p>
         <form method="post" action="?action=import">
+            ' . Csrf::getFormField() . '
             <label for="username">Discogs Username:</label>
             <input type="text" 
                    id="username" 
@@ -289,38 +281,44 @@ if (($progress['processing'] ?? false)) {
     $content .= '
     <script>
         function updateProgress() {
-            fetch("?action=import&check_progress=1")
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        document.getElementById("status-message").textContent = "Error: " + data.error;
-                        return;
-                    }
-                    
-                    if (typeof data.page !== "undefined") {
-                        document.getElementById("current-page").textContent = data.page;
-                    }
-                    if (typeof data.processed !== "undefined") {
-                        document.getElementById("processed-count").textContent = data.processed;
-                        document.getElementById("progress-bar").value = data.processed;
-                    }
-                    
-                    if (data.current_action) {
-                        document.getElementById("status-message").textContent = data.current_action;
-                    }
-                    
-                    if (data.processing) {
-                        setTimeout(updateProgress, 1000);
-                    } else if (data.processed >= data.total) {
-                        window.location.href = "?action=import&completed=1";
-                    } else {
-                        window.location.reload();
-                    }
-                })
-                .catch(error => {
-                    console.error("Error:", error);
-                    setTimeout(updateProgress, 2000);
-                });
+            const csrfToken = document.querySelector("input[name=\'csrf_token\']").value;
+            
+            fetch("?action=import&check_progress=1", {
+                headers: {
+                    "X-CSRF-Token": csrfToken
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById("status-message").textContent = "Error: " + data.error;
+                    return;
+                }
+                
+                if (typeof data.page !== "undefined") {
+                    document.getElementById("current-page").textContent = data.page;
+                }
+                if (typeof data.processed !== "undefined") {
+                    document.getElementById("processed-count").textContent = data.processed;
+                    document.getElementById("progress-bar").value = data.processed;
+                }
+                
+                if (data.current_action) {
+                    document.getElementById("status-message").textContent = data.current_action;
+                }
+                
+                if (data.processing) {
+                    setTimeout(updateProgress, 1000);
+                } else if (data.processed >= data.total) {
+                    window.location.href = "?action=import&completed=1";
+                } else {
+                    window.location.reload();
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                setTimeout(updateProgress, 2000);
+            });
         }
         
         updateProgress();
