@@ -9,9 +9,9 @@ final class Headers
     private const array HEADERS = [
         'Content-Security-Policy' => [
             "default-src 'self'",
-            "img-src 'self' https://api.discogs.com",
+            "img-src 'self' https://api.discogs.com https://i.discogs.com https://*.discogs.com",
             "script-src 'self' 'unsafe-inline'",  // Allow inline scripts if needed
-            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net", // Allow Water.css CDN
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",  // Added 'unsafe-inline'
             "form-action 'self'",
         ],
         'X-Content-Type-Options' => 'nosniff',
