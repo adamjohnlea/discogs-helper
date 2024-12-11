@@ -32,10 +32,10 @@ try {
             margin: 0 auto;
             padding: 20px;
         }
-        /*.cover {*/
-        /*    max-width: 300px;*/
-        /*    height: auto;*/
-        /*}*/
+        .cover {
+            max-width: 300px;
+            height: auto;
+        }
         .error {
             color: red;
             padding: 10px;
@@ -82,9 +82,9 @@ try {
             cursor: pointer;
             text-align: center;
         }
-        /*.image-option.selected {*/
-        /*    border-color: #4CAF50;*/
-        /*}*/
+        .image-option.selected {
+            border-color: #4CAF50;
+        }
         .image-option img {
             max-width: 100%;
             height: auto;
