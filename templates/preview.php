@@ -10,6 +10,7 @@ use DiscogsHelper\Auth;
 use DiscogsHelper\Database;
 use DiscogsHelper\DiscogsService;
 use DiscogsHelper\Logger;
+use DiscogsHelper\Security\Csrf;
 use DiscogsHelper\Session;
 
 // Check if user has valid Discogs credentials
