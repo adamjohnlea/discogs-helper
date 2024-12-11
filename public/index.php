@@ -23,6 +23,9 @@ Logger::initialize(__DIR__ . '/..');
 Logger::log('Application startup');
 Session::initialize();
 
+// At this point session is definitely initialized
+Logger::log('Session max lifetime: ' . ini_get('session.gc_maxlifetime'));
+Logger::log('Session cookie lifetime: ' . ini_get('session.cookie_lifetime'));
 // Apply security headers
 Headers::apply();
 
@@ -103,7 +106,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } catch (SecurityException $e) {
         Logger::security('CSRF validation failed');
         $error = '<div class="error">Invalid request. Please try again.</div>';
-        require __DIR__ . '/../templates/login.php';
+
+        // Return to the appropriate form based on the action
+        switch ($action) {
+            case 'import':
+                require __DIR__ . '/../templates/import.php';
+                break;
+            case 'profile_update':
+                require __DIR__ . '/../templates/profile_edit.php';
+                break;
+            case 'login':
+                require __DIR__ . '/../templates/login.php';
+                break;
+            default:
+                require __DIR__ . '/../templates/login.php';
+        }
         exit;
     }
 }
