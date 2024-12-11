@@ -1,173 +1,238 @@
-# Discogs Helper
+<h1>Discogs Helper</h1>
 
-A PHP application to manage your music collection using the Discogs API. Search, preview, and save releases with cover art and detailed information.
+<p>A PHP application to manage your music collection using the Discogs API. Features secure user authentication, personal collections, and detailed release management with cover art and comprehensive information.</p>
 
-## My Collection Screen
+<h2>My Collection Screen</h2>
 
 <p align="center">
   <img src="docs/images/discogs-helper-example-image.png" alt="Discogs Helper Main Screen Screenshot" width="1023">
 </p>
 
-## Album Details
+<h2>Album Details</h2>
 
 <p align="center">
   <img src="docs/images/discogs-helper-release-detail.png" alt="Discogs Helper Album Detail Screenshot" width="1023">
 </p>
 
-## Features
+<h2>Features</h2>
 
-- User authentication and personal collections # NEW
-- Search releases by artist/title or UPC/barcode
-- Preview release details before adding to (local) collection - currently not added to discogs
-- Select from available cover images
-- Import existing Discogs collection
-- View detailed release information
-- SQLite database for simple deployment
-- Cover image storage and management
-- Secure user-specific data isolation # NEW
+<ul>
+  <li>Secure user authentication and personal collections</li>
+  <li>User profiles with customizable settings</li>
+  <li>Advanced search functionality:
+    <ul>
+      <li>Search releases by artist/title</li>
+      <li>Search by UPC/barcode</li>
+    </ul>
+  </li>
+  <li>Comprehensive release management:
+    <ul>
+      <li>Preview release details before adding to collection</li>
+      <li>Multiple cover image selection options</li>
+      <li>Detailed release information display</li>
+    </ul>
+  </li>
+  <li>Discogs integration:
+    <ul>
+      <li>Import existing Discogs collection</li>
+      <li>Automatic cover image downloading</li>
+      <li>Preservation of original Discogs metadata</li>
+    </ul>
+  </li>
+  <li>Data security:
+    <ul>
+      <li>Secure user-specific data isolation</li>
+      <li>SQLite database with automatic migrations</li>
+      <li>Protected cover image storage</li>
+    </ul>
+  </li>
+</ul>
 
-## Requirements
+<h2>Requirements</h2>
 
-- PHP 8.3 or higher
-- SQLite 3
-- Composer
-- Discogs API credentials
-- Discogs account (for collection import and search)
+<ul>
+  <li>PHP 8.3 or higher</li>
+  <li>SQLite 3</li>
+  <li>Composer</li>
+  <li>Discogs API credentials</li>
+  <li>Discogs account (for collection import and search)</li>
+</ul>
 
-## Installation
+<h2>Installation</h2>
 
-1. Clone the repository:
-   git clone https://github.com/yourusername/discogs-helper.git then: `cd discogs-helper`
+<ol>
+  <li>Clone the repository:
+    <pre><code>git clone https://github.com/yourusername/discogs-helper.git
+cd discogs-helper</code></pre>
+  </li>
 
-2. Install dependencies:
-   `composer install`
+  <li>Install dependencies:
+    <pre><code>composer install</code></pre>
+  </li>
 
-3. Create environment file:
-   `cp .env.example .env`
+  <li>Create environment file:
+    <pre><code>cp .env.example .env</code></pre>
+  </li>
 
-4. Configure your Discogs API credentials in .env:<br>
-   `DISCOGS_CONSUMER_KEY=your_key_here`<br>
-   `DISCOGS_CONSUMER_SECRET=your_secret_here`
+  <li>Configure your Discogs API credentials in .env:
+    <pre><code>DISCOGS_CONSUMER_KEY=your_key_here
+DISCOGS_CONSUMER_SECRET=your_secret_here</code></pre>
+  </li>
 
-5. Set up directory permissions:<br>
-   `chmod -R 755 database`<br>
-   `chmod -R 755 public/images/covers`<br>
-   `chmod -R 755 logs`
+  <li>Set up directory permissions:
+    <pre><code>chmod -R 755 database
+chmod -R 755 public/images/covers
+chmod -R 755 logs</code></pre>
+  </li>
 
-6. Run database migrations:<br>
-   `php bin/migrate.php`
+  <li>Run database migrations:
+    <pre><code>php bin/migrate.php</code></pre>
+  </li>
+</ol>
 
-## Usage
+<h2>Usage</h2>
 
-1. Start the development server:
-   `php -S localhost:8000 -t public`
+<ol>
+  <li>Start the development server:
+    <pre><code>php -S localhost:8000 -t public</code></pre>
+  </li>
 
-2. Open in your browser:
-   http://localhost:8000
+  <li>Open in your browser:
+    <pre><code>http://localhost:8000</code></pre>
+  </li>
 
-3. First-time setup: # NEW SECTION
-   - Register for a new account
-   - Log in to your account
-   - Your collection will be private to your account
+  <li>First-time setup:
+    <ul>
+      <li>Register for a new account</li>
+      <li>Log in to your account</li>
+      <li>Set up your user profile</li>
+      <li>Start building your personal collection</li>
+    </ul>
+  </li>
 
-4. Features:
-   - Click "Add New Release" to search for releases
-   - Enter an artist/title or UPC/barcode
-   - Click on a search result to view details
-   - Select your preferred cover image
-   - Click "Add to Collection" to save the release
-   - View your collection on the main page
-   - Click on any release to view its details
-   - Use "Import Collection" to import your existing Discogs collection
+  <li>Core features:
+    <ul>
+      <li>Use "Add New Release" to search for music</li>
+      <li>Search by artist/title or UPC/barcode</li>
+      <li>Preview full release details</li>
+      <li>Choose from available cover images</li>
+      <li>Add releases to your personal collection</li>
+      <li>View and manage your collection</li>
+      <li>Import your existing Discogs collection</li>
+    </ul>
+  </li>
+</ol>
 
-## Import Feature
+<h2>Collection Import</h2>
 
-The collection import:
-- Processes releases in batches to handle rate limits
-- Automatically downloads cover images
-- Preserves original Discogs date added
-- Skips duplicates automatically
-- Shows progress with a visual indicator
-- Imports to your personal collection # NEW
+<p>The collection import feature includes:</p>
+<ul>
+  <li>Batch processing with rate limit handling</li>
+  <li>Automatic cover image downloads</li>
+  <li>Original Discogs metadata preservation</li>
+  <li>Duplicate detection and skipping</li>
+  <li>Visual progress indication</li>
+  <li>User-specific collection isolation</li>
+</ul>
 
-## Database
+<h2>Database</h2>
 
-The application uses SQLite for simplicity. The database file is automatically created at
-database/discogs.sqlite when you first run the application.
+<p>The application uses SQLite for simplicity and reliability:</p>
+<ul>
+  <li>Automatic database creation and migration</li>
+  <li>Secure user authentication system</li>
+  <li>Personal collections per user</li>
+  <li>User profile storage</li>
+  <li>Protected database location</li>
+</ul>
 
-Database features: # NEW SECTION
-- Secure user authentication
-- Personal collections for each user
-- Automatic database migrations
-- Data isolation between users
+<h2>Configuration</h2>
 
-## Configuration
+<p>Required environment variables:</p>
+<ul>
+  <li><code>DISCOGS_CONSUMER_KEY</code>: Your Discogs API consumer key</li>
+  <li><code>DISCOGS_CONSUMER_SECRET</code>: Your Discogs API consumer secret</li>
+</ul>
 
-The following environment variables are required:
-- `DISCOGS_CONSUMER_KEY: Your Discogs API consumer key`
-- `DISCOGS_CONSUMER_SECRET: Your Discogs API consumer secret`
+<p>Additional configuration options in config/config.php:</p>
+<ul>
+  <li>Database settings</li>
+  <li>API configuration</li>
+  <li>Rate limiting parameters</li>
+  <li>Authentication options</li>
+  <li>User profile settings</li>
+</ul>
 
-Optional configuration can be modified in config/config.php:
-- Database location
-- User agent string
-- API rate limiting parameters
-- Authentication settings # NEW
+<h2>Security</h2>
 
-## Security
+<ul>
+  <li>Secure user authentication with password hashing</li>
+  <li>Individual user collection isolation</li>
+  <li>Input sanitization and validation</li>
+  <li>Secure file storage with randomized names</li>
+  <li>Protected API credentials</li>
+  <li>Session security measures</li>
+  <li>Database security best practices</li>
+</ul>
 
-- User authentication with secure password hashing # NEW
-- Personal collections isolated by user # NEW
-- All user inputs are sanitized
-- Cover images are stored with randomized filenames
-- API credentials are stored in environment variables
-- Database file is outside web root
-- Session-based authentication # NEW
+<h2>Error Handling</h2>
 
-## Error Handling
+<ul>
+  <li>Comprehensive error logging</li>
+  <li>Automatic API rate limit management</li>
+  <li>Duplicate entry prevention</li>
+  <li>Detailed operation logging</li>
+  <li>Security event tracking</li>
+  <li>User-friendly error messages</li>
+</ul>
 
-- Logs are stored in the logs/ directory
-- API rate limiting is handled automatically
-- Duplicate releases are prevented
-- Failed operations are logged with details
-- Authentication failures are logged securely # NEW
+<h2>Development</h2>
 
-## Development
+<ul>
+  <li>Modern PHP architecture</li>
+  <li>Template-based view system</li>
+  <li>Structured logging system</li>
+  <li>API integration management</li>
+  <li>Authentication middleware</li>
+  <li>User profile management</li>
+</ul>
 
-- The application uses a simple PHP template system
-- CSS is included inline for simplicity
-- Error logging is done to the logs/ directory
-- Rate limiting automatically handles Discogs API restrictions
-- User authentication middleware # NEW
+<h2>Contributing</h2>
 
-## Contributing
+<ol>
+  <li>Fork the repository</li>
+  <li>Create your feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
+  <li>Commit your changes (<code>git commit -m 'Add some amazing feature'</code>)</li>
+  <li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
+  <li>Open a Pull Request</li>
+</ol>
 
-1. Fork the repository
-2. Create your feature branch (git checkout -b feature/amazing-feature)
-3. Commit your changes (git commit -m 'Add some amazing feature')
-4. Push to the branch (git push origin feature/amazing-feature)
-5. Open a Pull Request
+<h2>License</h2>
 
-## License
+<p>This project is licensed under the MIT License - see the LICENSE file for details.</p>
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+<h2>Acknowledgments</h2>
 
-## Acknowledgments
+<ul>
+  <li><a href="https://www.discogs.com/developers">Discogs API</a> for providing the music database</li>
+  <li><a href="https://www.sqlite.org/">SQLite</a> for reliable database storage</li>
+  <li><a href="https://docs.guzzlephp.org/">GuzzleHTTP</a> for HTTP client functionality</li>
+  <li><a href="https://github.com/vlucas/phpdotenv">phpdotenv</a> for environment configuration</li>
+</ul>
 
-- [Discogs API](https://www.discogs.com/developers) for providing the music database
-- [SQLite](https://www.sqlite.org/) for reliable database storage
-- [GuzzleHTTP](https://docs.guzzlephp.org/) for HTTP client functionality
-- [phpdotenv](https://github.com/vlucas/phpdotenv) for environment configuration
+<h2>Support</h2>
 
-## Support
+<p>If you encounter any problems or have suggestions, please open an issue in the GitHub repository.</p>
 
-If you encounter any problems or have suggestions, please open an issue in the GitHub repository.
+<h2>Deployment Considerations</h2>
 
-## Security Considerations # NEW SECTION
-
-When deploying this application:
-1. Always use HTTPS in production
-2. Regularly update dependencies
-3. Monitor authentication logs
-4. Back up user data regularly
-5. Consider rate limiting login attempts
-6. Follow security best practices for session management
+<p>When deploying to production:</p>
+<ul>
+  <li>Enable HTTPS</li>
+  <li>Keep dependencies updated</li>
+  <li>Monitor authentication logs</li>
+  <li>Implement regular backups</li>
+  <li>Configure rate limiting</li>
+  <li>Follow security best practices</li>
+  <li>Set up monitoring</li>
+</ul>
