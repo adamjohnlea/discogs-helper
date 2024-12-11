@@ -4,12 +4,23 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+use DiscogsHelper\Logger;
+use DiscogsHelper\Session;
 use DiscogsHelper\Database;
 use DiscogsHelper\DatabaseSetup;
 use DiscogsHelper\DiscogsService;
 use DiscogsHelper\Auth;
 use DiscogsHelper\UserProfile;
+use DiscogsHelper\Exceptions\DiscogsCredentialsException;
 use DiscogsHelper\Exceptions\DuplicateDiscogsUsernameException;
+
+// Initialize logger and session
+Logger::initialize(__DIR__ . '/..');
+Logger::log('Application startup');
+Session::initialize();
+
+$action = $_GET['action'] ?? '';
+$id = isset($_GET['id']) ? (int)$_GET['id'] : null;
 
 $config = require __DIR__ . '/../config/config.php';
 
@@ -17,17 +28,14 @@ $config = require __DIR__ . '/../config/config.php';
 DatabaseSetup::initialize($config['database']['path']);
 
 $db = new Database($config['database']['path']);
-$discogs = new DiscogsService(
-    $config['discogs']['consumer_key'],
-    $config['discogs']['consumer_secret'],
-    $config['discogs']['user_agent']
-);
 $auth = new Auth($db);
 
-$action = $_GET['action'] ?? '';
-$id = isset($_GET['id']) ? (int)$_GET['id'] : null;
+// Create DiscogsService instance for routes that need it
+$discogs = null;
+if (in_array($action, ['search', 'import', 'view', 'preview', 'add'])) {
+    $discogs = createDiscogsService($auth, $db);
+}
 
-// Handle POST requests for login and register
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'register') {
         try {
@@ -54,14 +62,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($action === 'login') {
-        // Initialize auth_message from session if it exists
-        $auth_message = $_SESSION['auth_message'] ?? null;
-
         if ($auth->login($_POST['username'], $_POST['password'])) {
             // Redirect to intended page if set, otherwise go to list
             $intended = $_SESSION['intended_page'] ?? '?action=list';
             unset($_SESSION['intended_page']);
-            unset($_SESSION['auth_message']); // Clear the message
             header('Location: '.$intended);
             exit;
         }
@@ -86,24 +90,45 @@ if (in_array($action, $protected_routes) && !$auth->isLoggedIn()) {
     $_SESSION['intended_page'] = $_SERVER['REQUEST_URI'];
 
     // Set a friendly message
-    $_SESSION['auth_message'] = match ($action) {
+    Session::setMessage(match ($action) {
         'search' => 'Please log in to search the Discogs database.',
         'list' => 'Please log in to view your collection.',
         'import' => 'Please log in to import your collection.',
         'view', 'preview' => 'Please log in to view release details.',
         'add' => 'Please log in to add releases.',
         default => 'Please log in to access this feature.'
-    };
+    });
 
     header('Location: ?action=login');
     exit;
 }
 
-// Update login template to show auth message if exists
-$auth_message = null;
-if (isset($_SESSION['auth_message'])) {
-    $auth_message = $_SESSION['auth_message'];
-    unset($_SESSION['auth_message']);
+// Function to create DiscogsService instance for authenticated user
+function createDiscogsService(Auth $auth, Database $db): ?DiscogsService {
+    if (!$auth->isLoggedIn()) {
+        return null;
+    }
+
+    $userId = $auth->getCurrentUser()->id;
+    $profile = $db->getUserProfile($userId);
+
+    if (!$profile || empty($profile->discogsConsumerKey) || empty($profile->discogsConsumerSecret)) {
+        Session::setMessage('Please set up your Discogs credentials in your profile.');
+        header('Location: ?action=profile_edit');
+        exit;
+    }
+
+    try {
+        return new DiscogsService(
+            consumerKey: $profile->discogsConsumerKey,
+            consumerSecret: $profile->discogsConsumerSecret,
+            userAgent: 'DiscogsHelper/1.0'
+        );
+    } catch (DiscogsCredentialsException $e) {
+        Session::setErrors(['Invalid Discogs credentials. Please check your settings.']);
+        header('Location: ?action=profile_edit');
+        exit;
+    }
 }
 
 function handleProfileUpdate(Auth $auth, Database $db): void
@@ -116,6 +141,29 @@ function handleProfileUpdate(Auth $auth, Database $db): void
     $userId = $auth->getCurrentUser()->id;
     $currentProfile = $db->getUserProfile($userId);
     $errors = [];
+
+    // Validate Discogs credentials if provided
+    if (!empty($_POST['discogs_consumer_key']) || !empty($_POST['discogs_consumer_secret'])) {
+        // Both key and secret must be provided together
+        if (empty($_POST['discogs_consumer_key']) || empty($_POST['discogs_consumer_secret'])) {
+            $errors[] = 'Both Discogs Consumer Key and Consumer Secret must be provided';
+        } else {
+            try {
+                $credentialsValid = DiscogsService::validateCredentials(
+                    consumerKey: $_POST['discogs_consumer_key'],
+                    consumerSecret: $_POST['discogs_consumer_secret'],
+                    userAgent: 'DiscogsHelper/1.0'
+                );
+
+                if (!$credentialsValid) {
+                    $errors[] = 'The provided Discogs credentials are invalid. Please check them and try again.';
+                }
+            } catch (Exception $e) {
+                Logger::error('Discogs credential validation failed: ' . $e->getMessage());
+                $errors[] = 'Unable to verify Discogs credentials. Please try again later.';
+            }
+        }
+    }
 
     // Validate password change if attempted
     $passwordChanged = false;
@@ -133,7 +181,7 @@ function handleProfileUpdate(Auth $auth, Database $db): void
         }
     }
 
-    // Handle profile updates if no password errors
+    // Handle profile updates if no errors
     if (empty($errors)) {
         try {
             // Start with current profile or create new one
@@ -168,22 +216,21 @@ function handleProfileUpdate(Auth $auth, Database $db): void
                 );
             }
 
-            // Redirect with success message
+            // Add success message
+            Session::setMessage('Profile updated successfully');
             header('Location: ?action=profile&success=true');
             exit;
 
         } catch (DuplicateDiscogsUsernameException $e) {
             $errors[] = $e->getMessage();
         } catch (Exception $e) {
-            // Log the error for debugging
-            error_log($e->getMessage());
+            Logger::error($e->getMessage());
             $errors[] = 'An error occurred while saving your profile';
         }
     }
 
     // If we get here, there were errors
-    // Store errors in session and redirect back to form
-    $_SESSION['profile_errors'] = $errors;
+    Session::setErrors($errors);
     header('Location: ?action=profile_edit');
     exit;
 }

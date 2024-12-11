@@ -14,7 +14,7 @@ final class Auth
     public function __construct(
         private Database $db
     ) {
-        session_start();
+        Session::initialize();
     }
 
     public function register(string $username, string $email, string $password): User

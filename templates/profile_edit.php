@@ -6,6 +6,8 @@
 
 use DiscogsHelper\Auth;
 use DiscogsHelper\Database;
+use DiscogsHelper\Logger;
+use DiscogsHelper\Session;
 
 if (!$auth->isLoggedIn()) {
     header('Location: ?action=login');
@@ -16,20 +18,35 @@ $userId = $auth->getCurrentUser()->id;
 $profile = $db->getUserProfile($userId);
 $user = $auth->getCurrentUser();
 
-// Display errors if any
-if (!empty($_SESSION['profile_errors'])) {
-    $content = '
-    <div class="error-messages">
-        <ul>
-            ' . implode('', array_map(fn($error) => "<li>$error</li>", $_SESSION['profile_errors'])) . '
-        </ul>
-    </div>';
+// Initialize content variable
+$content = '';
 
-    // Clear errors after displaying
-    unset($_SESSION['profile_errors']);
+// Display auth message if any
+if (Session::hasMessage()) {
+    $message = Session::getMessage();
+    Logger::log('Profile_edit.php: Found message: ' . $message);
+    $content .= '
+    <div class="info-message">
+        ' . htmlspecialchars($message) . '
+    </div>';
+    Logger::log('Profile_edit.php: Added message to content');
+} else {
+    Logger::log('Profile_edit.php: No message found in session');
 }
 
-$content = ($content ?? '') . '
+// Display errors if any
+if (Session::hasErrors()) {
+    $errors = Session::getErrors();
+    Logger::log('Profile_edit.php: Displaying errors: ' . implode(', ', $errors));
+    $content .= '
+    <div class="error-messages">
+        <ul>
+            ' . implode('', array_map(fn($error) => "<li>" . htmlspecialchars($error) . "</li>", $errors)) . '
+        </ul>
+    </div>';
+}
+
+$content .= '
 <div class="profile-edit">
     <h1>Edit Profile</h1>
     
@@ -193,6 +210,16 @@ $styles = '
 
     .error-messages li {
         margin: 0.25rem 0;
+    }
+
+    .info-message {
+        max-width: 800px;
+        margin: 1rem auto;
+        padding: 1rem;
+        background: #e3f2fd;
+        border: 1px solid #90caf9;
+        border-radius: 4px;
+        color: #1976d2;
     }
 </style>';
 

@@ -15,37 +15,31 @@
 </p>
 
 <h2>Features</h2>
-
 <ul>
-  <li>Secure user authentication and personal collections</li>
-  <li>User profiles with customizable settings</li>
-  <li>Advanced search functionality:
-    <ul>
-      <li>Search releases by artist/title</li>
-      <li>Search by UPC/barcode</li>
-    </ul>
-  </li>
-  <li>Comprehensive release management:
-    <ul>
-      <li>Preview release details before adding to collection</li>
-      <li>Multiple cover image selection options</li>
-      <li>Detailed release information display</li>
-    </ul>
-  </li>
-  <li>Discogs integration:
-    <ul>
-      <li>Import existing Discogs collection</li>
-      <li>Automatic cover image downloading</li>
-      <li>Preservation of original Discogs metadata</li>
-    </ul>
-  </li>
-  <li>Data security:
-    <ul>
-      <li>Secure user-specific data isolation</li>
-      <li>SQLite database with automatic migrations</li>
-      <li>Protected cover image storage</li>
-    </ul>
-  </li>
+    <li>User Authentication
+        <ul>
+            <li>Secure login and registration</li>
+            <li>Password protection</li>
+            <li><b>User profiles with individual settings</b></li>
+        </ul>
+    </li>
+    <li>Discogs Integration
+        <ul>
+            <li><b>Personal API credential management</b></li>
+            <li>Search Discogs database</li>
+            <li>View detailed release information</li>
+            <li>Import your Discogs collection</li>
+            <li>Add individual releases to your collection</li>
+        </ul>
+    </li>
+    <li>Collection Management
+        <ul>
+            <li>View your complete collection</li>
+            <li>Automatic cover art downloading</li>
+            <li>Track listing support</li>
+            <li>Format and release details</li>
+        </ul>
+    </li>
 </ul>
 
 <h2>Requirements</h2>
@@ -54,8 +48,7 @@
   <li>PHP 8.3 or higher</li>
   <li>SQLite 3</li>
   <li>Composer</li>
-  <li>Discogs API credentials</li>
-  <li>Discogs account (for collection import and search)</li>
+  <li>Discogs account and API credentials (for collection import and search)</li>
 </ul>
 
 <h2>Installation</h2>
@@ -70,15 +63,6 @@ cd discogs-helper</code></pre>
     <pre><code>composer install</code></pre>
   </li>
 
-  <li>Create environment file:
-    <pre><code>cp .env.example .env</code></pre>
-  </li>
-
-  <li>Configure your Discogs API credentials in .env:
-    <pre><code>DISCOGS_CONSUMER_KEY=your_key_here
-DISCOGS_CONSUMER_SECRET=your_secret_here</code></pre>
-  </li>
-
   <li>Set up directory permissions:
     <pre><code>chmod -R 755 database
 chmod -R 755 public/images/covers
@@ -88,6 +72,15 @@ chmod -R 755 logs</code></pre>
   <li>Run database migrations:
     <pre><code>php bin/migrate.php</code></pre>
   </li>
+</ol>
+
+<h2>Configuration</h2>
+<ol>
+    <li>Create a Discogs account if you don't have one</li>
+    <li>Register your application at <a href="https://www.discogs.com/settings/developers">Discogs Developer Settings</a></li>
+    <li>Get your Consumer Key and Consumer Secret</li>
+    <li>Register an account in the application</li>
+    <li>Add your Discogs credentials in your profile settings</li>
 </ol>
 
 <h2>Usage</h2>
@@ -103,10 +96,11 @@ chmod -R 755 logs</code></pre>
 
   <li>First-time setup:
     <ul>
-      <li>Register for a new account</li>
-      <li>Log in to your account</li>
-      <li>Set up your user profile</li>
-      <li>Start building your personal collection</li>
+      <li>Register an account or log in</li>
+    <li>Configure your Discogs credentials in your profile</li>
+    <li>Use the search function to find releases</li>
+    <li>Add releases to your collection individually</li>
+    <li>Or import your entire Discogs collection</li>
     </ul>
   </li>
 
@@ -148,12 +142,6 @@ chmod -R 755 logs</code></pre>
 
 <h2>Configuration</h2>
 
-<p>Required environment variables:</p>
-<ul>
-  <li><code>DISCOGS_CONSUMER_KEY</code>: Your Discogs API consumer key</li>
-  <li><code>DISCOGS_CONSUMER_SECRET</code>: Your Discogs API consumer secret</li>
-</ul>
-
 <p>Additional configuration options in config/config.php:</p>
 <ul>
   <li>Database settings</li>
@@ -166,11 +154,10 @@ chmod -R 755 logs</code></pre>
 <h2>Security</h2>
 
 <ul>
-  <li>Secure user authentication with password hashing</li>
-  <li>Individual user collection isolation</li>
-  <li>Input sanitization and validation</li>
-  <li>Secure file storage with randomized names</li>
-  <li>Protected API credentials</li>
+<li>User passwords are securely hashed</li>
+    <li><b>Individual API credentials per user</b></li>
+    <li>Session-based authentication</li>
+    <li>Input validation and sanitization</li>
   <li>Session security measures</li>
   <li>Database security best practices</li>
 </ul>
@@ -217,22 +204,17 @@ chmod -R 755 logs</code></pre>
   <li><a href="https://www.discogs.com/developers">Discogs API</a> for providing the music database</li>
   <li><a href="https://www.sqlite.org/">SQLite</a> for reliable database storage</li>
   <li><a href="https://docs.guzzlephp.org/">GuzzleHTTP</a> for HTTP client functionality</li>
-  <li><a href="https://github.com/vlucas/phpdotenv">phpdotenv</a> for environment configuration</li>
 </ul>
 
 <h2>Support</h2>
 
 <p>If you encounter any problems or have suggestions, please open an issue in the GitHub repository.</p>
 
-<h2>Deployment Considerations</h2>
-
-<p>When deploying to production:</p>
+<h2>Recent Updates</h2>
 <ul>
-  <li>Enable HTTPS</li>
-  <li>Keep dependencies updated</li>
-  <li>Monitor authentication logs</li>
-  <li>Implement regular backups</li>
-  <li>Configure rate limiting</li>
-  <li>Follow security best practices</li>
-  <li>Set up monitoring</li>
+    <li><b>Moved from environment variables to database-stored credentials</b></li>
+    <li><b>Added user profiles with individual Discogs API credentials</b></li>
+    <li><b>Improved session handling and security</b></li>
+    <li><b>Added credential validation</b></li>
+    <li><b>Enhanced error handling and user feedback</b></li>
 </ul>

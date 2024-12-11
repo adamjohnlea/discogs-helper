@@ -6,6 +6,15 @@
 
 use DiscogsHelper\Auth;
 use DiscogsHelper\DiscogsService;
+use DiscogsHelper\Logger;
+use DiscogsHelper\Session;
+
+// Check if user has valid Discogs credentials
+if (!isset($discogs)) {
+    Session::setMessage('Please set up your Discogs credentials in your profile to search Discogs.');
+    header('Location: ?action=profile_edit');
+    exit;
+}
 
 $content = '
 <div class="search-section">
@@ -27,29 +36,34 @@ $content = '
         </div>
         <input type="text" name="q" 
                value="' . htmlspecialchars($_GET['q'] ?? '') . '" 
-               placeholder="' . ((isset($_GET['search_type']) && $_GET['search_type'] === 'barcode') 
-                   ? 'Enter UPC/Barcode number...' 
-                   : 'Enter artist or release title...') . '">
+               placeholder="' . ((isset($_GET['search_type']) && $_GET['search_type'] === 'barcode')
+        ? 'Enter UPC/Barcode number...'
+        : 'Enter artist or release title...') . '">
         <button type="submit">Search</button>
     </form>';
 
 if (isset($_GET['q'])) {
     $content .= '<div class="album-grid">';
-    
+
     try {
         $results = $discogs->searchRelease($_GET['q']);
+    } catch (DiscogsHelper\Exceptions\DiscogsCredentialsException $e) {
+        Session::setMessage('Your Discogs credentials appear to be invalid. Please check your settings.');
+        header('Location: ?action=profile_edit');
+        exit;
     } catch (Exception $e) {
+        Logger::error('Search failed: ' . $e->getMessage());
         $content .= '<div class="error">Search failed: ' . htmlspecialchars($e->getMessage()) . '</div>';
         $results = [];
     }
-    
+
     foreach ($results as $result) {
         $content .= '
         <div class="album-card">
-            ' . (!empty($result['cover_image']) 
+            ' . (!empty($result['cover_image'])
                 ? '<a href="?action=preview&id=' . $result['id'] . '">
                     <img src="' . htmlspecialchars($result['cover_image']) . '" alt="Cover">
-                   </a>' 
+                   </a>'
                 : '') . '
             <div class="details">
                 <h3>' . htmlspecialchars($result['title']) . '</h3>
@@ -60,13 +74,12 @@ if (isset($_GET['q'])) {
             </div>
         </div>';
     }
-    
+
     $content .= '</div>';
 }
 
 $content .= '</div>';
 
-// Add some page-specific styles
 $styles = '
 <style>
     .search-section {
@@ -127,4 +140,4 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 </script>';
 
-require __DIR__ . '/layout.php'; 
+require __DIR__ . '/layout.php';
