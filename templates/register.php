@@ -5,6 +5,7 @@
 /** @var string|null $error Error message if registration failed */
 
 use DiscogsHelper\Auth;
+use DiscogsHelper\Security\Csrf;
 
 $content = '
 <div class="auth-container">
@@ -13,7 +14,7 @@ $content = '
     ' . ($error ?? '') . '
     
     <form method="POST" action="?action=register" class="auth-form">
-     <?= Csrf::getFormField() ?>
+     ' . Csrf::getFormField() . '
         <div>
             <label for="username">Username</label>
             <input type="text" 

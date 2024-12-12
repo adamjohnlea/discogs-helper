@@ -50,7 +50,7 @@ $content .= '
     <h1>Edit Profile</h1>
     
     <form method="POST" action="?action=profile_update" class="profile-form">
-        ' . Csrf::getFormField() . '   <!-- Changed from PHP short tag to proper concatenation -->
+        ' . Csrf::getFormField() . '   
         <section class="form-section">
             <h2>Basic Information</h2>
             

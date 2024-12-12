@@ -254,12 +254,12 @@ function handleProfileUpdate(Auth $auth, Database $db): void
 
             // Create or update profile
             $updatedProfile = new UserProfile(
-                id: $profile?->id,
+                id: $profile?->id ?? 0,  // Use 0 for new profiles
                 userId: $userId,
                 location: trim($_POST['location'] ?? ''),
-                discogsUsername: $newDiscogsUsername,
-                discogsConsumerKey: trim($_POST['discogs_consumer_key'] ?? ''),
-                discogsConsumerSecret: trim($_POST['discogs_consumer_secret'] ?? ''),
+                discogsUsername: $profile?->discogsUsername,
+                discogsConsumerKey: trim($_POST['discogs_consumer_key'] ?? '') ?: $profile?->discogsConsumerKey,
+                discogsConsumerSecret: trim($_POST['discogs_consumer_secret'] ?? '') ?: $profile?->discogsConsumerSecret,
                 createdAt: $profile?->createdAt ?? date('Y-m-d H:i:s'),
                 updatedAt: date('Y-m-d H:i:s')
             );
@@ -283,7 +283,7 @@ function handleProfileUpdate(Auth $auth, Database $db): void
     } else {
         // Update profile without changing Discogs username
         $updatedProfile = new UserProfile(
-            id: $profile?->id,
+            id: $profile?->id ?? 0,
             userId: $userId,
             location: trim($_POST['location'] ?? ''),
             discogsUsername: $profile?->discogsUsername,
