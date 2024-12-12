@@ -7,6 +7,7 @@
 use DiscogsHelper\Auth;
 use DiscogsHelper\Database;
 use DiscogsHelper\Logger;
+use DiscogsHelper\Security\Csrf;
 use DiscogsHelper\Session;
 
 if (!$auth->isLoggedIn()) {
@@ -30,8 +31,6 @@ if (Session::hasMessage()) {
         ' . htmlspecialchars($message) . '
     </div>';
     Logger::log('Profile_edit.php: Added message to content');
-} else {
-    Logger::log('Profile_edit.php: No message found in session');
 }
 
 // Display errors if any
@@ -51,7 +50,7 @@ $content .= '
     <h1>Edit Profile</h1>
     
     <form method="POST" action="?action=profile_update" class="profile-form">
-     <?= Csrf::getFormField() ?>
+        ' . Csrf::getFormField() . '   <!-- Changed from PHP short tag to proper concatenation -->
         <section class="form-section">
             <h2>Basic Information</h2>
             
