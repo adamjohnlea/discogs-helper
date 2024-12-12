@@ -13,21 +13,11 @@ use DiscogsHelper\Auth;
 use DiscogsHelper\UserProfile;
 use DiscogsHelper\Exceptions\DiscogsCredentialsException;
 use DiscogsHelper\Exceptions\DuplicateDiscogsUsernameException;
-use DiscogsHelper\Exceptions\SecurityException;
-use DiscogsHelper\Exceptions\RateLimitExceededException;
-use DiscogsHelper\Security\Headers;
-use DiscogsHelper\Security\Csrf;
 
 // Initialize logger and session
 Logger::initialize(__DIR__ . '/..');
 Logger::log('Application startup');
 Session::initialize();
-
-// At this point session is definitely initialized
-Logger::log('Session max lifetime: ' . ini_get('session.gc_maxlifetime'));
-Logger::log('Session cookie lifetime: ' . ini_get('session.cookie_lifetime'));
-// Apply security headers
-Headers::apply();
 
 $action = $_GET['action'] ?? '';
 $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
@@ -46,91 +36,42 @@ if (in_array($action, ['search', 'import', 'view', 'preview', 'add'])) {
     $discogs = createDiscogsService($auth, $db);
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' ||
-    (isset($_GET['check_progress']) && $_GET['action'] === 'import')) {
-    try {
-        // Check for CSRF token in either POST data or header
-        $token = $_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null;
-        Csrf::validateOrFail($token);
-
-        if ($action === 'register') {
-            try {
-                if ($_POST['password'] !== $_POST['password_confirm']) {
-                    $error = '<div class="error">Passwords do not match</div>';
-                    require __DIR__ . '/../templates/register.php';
-                    exit;
-                }
-
-                $user = $auth->register(
-                    $_POST['username'],
-                    $_POST['email'],
-                    $_POST['password']
-                );
-
-                $auth->login($_POST['username'], $_POST['password']);
-                header('Location: ?action=list');
-                exit;
-            } catch (RuntimeException $e) {
-                $error = '<div class="error">' . htmlspecialchars($e->getMessage()) . '</div>';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if ($action === 'register') {
+        try {
+            if ($_POST['password'] !== $_POST['password_confirm']) {
+                $error = '<div class="error">Passwords do not match</div>';
                 require __DIR__ . '/../templates/register.php';
                 exit;
             }
+
+            $user = $auth->register(
+                $_POST['username'],
+                $_POST['email'],
+                $_POST['password']
+            );
+
+            $auth->login($_POST['username'], $_POST['password']);
+            header('Location: ?action=list');
+            exit;
+        } catch (RuntimeException $e) {
+            $error = '<div class="error">' . htmlspecialchars($e->getMessage()) . '</div>';
+            require __DIR__ . '/../templates/register.php';
+            exit;
         }
+    }
 
-        if ($action === 'login') {
-            try {
-                if ($auth->login($_POST['username'], $_POST['password'])) {
-                    $intended = $_SESSION['intended_page'] ?? '?action=list';
-                    unset($_SESSION['intended_page']);
-                    header('Location: ' . $intended);
-                    exit;
-                }
-
-                $error = '<div class="error">Invalid username or password</div>';
-                require __DIR__ . '/../templates/login.php';
-                exit;
-            } catch (RateLimitExceededException $e) {
-                $error = '<div class="error">' . htmlspecialchars($e->getMessage()) . '</div>';
-                require __DIR__ . '/../templates/login.php';
-                exit;
-            }
-        }
-
-        if ($action === 'profile_update') {
-            try {
-                handleProfileUpdate($auth, $db);
-            } catch (Exception $e) {
-                $error = '<div class="error">' . htmlspecialchars($e->getMessage()) . '</div>';
-                require __DIR__ . '/../templates/profile_edit.php';
-                exit;
-            }
-        }
-
-    } catch (SecurityException $e) {
-        Logger::security('CSRF validation failed');
-
-        // If this is an AJAX request, send JSON response
-        if (isset($_GET['check_progress'])) {
-            header('Content-Type: application/json');
-            echo json_encode(['error' => 'Invalid security token']);
+    if ($action === 'login') {
+        if ($auth->login($_POST['username'], $_POST['password'])) {
+            // Redirect to intended page if set, otherwise go to list
+            $intended = $_SESSION['intended_page'] ?? '?action=list';
+            unset($_SESSION['intended_page']);
+            header('Location: '.$intended);
             exit;
         }
 
-        // Otherwise show error in template
-        $error = '<div class="error">Invalid request. Please try again.</div>';
-        switch ($action) {
-            case 'import':
-                require __DIR__ . '/../templates/import.php';
-                break;
-            case 'profile_update':
-                require __DIR__ . '/../templates/profile_edit.php';
-                break;
-            case 'login':
-                require __DIR__ . '/../templates/login.php';
-                break;
-            default:
-                require __DIR__ . '/../templates/login.php';
-        }
+        $error = '<div class="error">Invalid username or password</div>';
+        require __DIR__.'/../templates/login.php';
         exit;
     }
 }
@@ -198,112 +139,106 @@ function handleProfileUpdate(Auth $auth, Database $db): void
     }
 
     $userId = $auth->getCurrentUser()->id;
-    $profile = $db->getUserProfile($userId);
-    $user = $auth->getCurrentUser();
+    $currentProfile = $db->getUserProfile($userId);
+    $errors = [];
 
-    // Validate current password if changing password
-    if (!empty($_POST['new_password'])) {
-        if (empty($_POST['current_password'])) {
-            Session::setErrors(['Current password is required to set a new password']);
-            header('Location: ?action=profile_edit');
-            exit;
+    // Validate Discogs credentials if provided
+    if (!empty($_POST['discogs_consumer_key']) || !empty($_POST['discogs_consumer_secret'])) {
+        // Both key and secret must be provided together
+        if (empty($_POST['discogs_consumer_key']) || empty($_POST['discogs_consumer_secret'])) {
+            $errors[] = 'Both Discogs Consumer Key and Consumer Secret must be provided';
+        } else {
+            try {
+                $credentialsValid = DiscogsService::validateCredentials(
+                    consumerKey: $_POST['discogs_consumer_key'],
+                    consumerSecret: $_POST['discogs_consumer_secret'],
+                    userAgent: 'DiscogsHelper/1.0'
+                );
+
+                if (!$credentialsValid) {
+                    $errors[] = 'The provided Discogs credentials are invalid. Please check them and try again.';
+                }
+            } catch (Exception $e) {
+                Logger::error('Discogs credential validation failed: ' . $e->getMessage());
+                $errors[] = 'Unable to verify Discogs credentials. Please try again later.';
+            }
         }
-
-        if (!$user->verifyPassword($_POST['current_password'])) {
-            Session::setErrors(['Current password is incorrect']);
-            header('Location: ?action=profile_edit');
-            exit;
-        }
-
-        if ($_POST['new_password'] !== $_POST['confirm_password']) {
-            Session::setErrors(['New passwords do not match']);
-            header('Location: ?action=profile_edit');
-            exit;
-        }
-
-        $db->updateUserPassword($userId, $_POST['new_password']);
-        Logger::security('User password updated successfully');
     }
 
-    // Check if Discogs username is being changed
-    $newDiscogsUsername = trim($_POST['discogs_username'] ?? '');
-    if ($newDiscogsUsername !== ($profile?->discogsUsername ?? '')) {
+    // Validate password change if attempted
+    $passwordChanged = false;
+    if (!empty($_POST['new_password']) || !empty($_POST['confirm_password'])) {
+        if (empty($_POST['current_password'])) {
+            $errors[] = 'Current password is required to change password';
+        } elseif (!$auth->getCurrentUser()->verifyPassword($_POST['current_password'])) {
+            $errors[] = 'Current password is incorrect';
+        } elseif ($_POST['new_password'] !== $_POST['confirm_password']) {
+            $errors[] = 'New passwords do not match';
+        } elseif (strlen($_POST['new_password']) < 8) {
+            $errors[] = 'New password must be at least 8 characters long';
+        } else {
+            $passwordChanged = true;
+        }
+    }
+
+    // Handle profile updates if no errors
+    if (empty($errors)) {
         try {
-            // Validate Discogs credentials if provided
-            if (!empty($newDiscogsUsername)) {
-                $newConsumerKey = trim($_POST['discogs_consumer_key'] ?? '');
-                $newConsumerSecret = trim($_POST['discogs_consumer_secret'] ?? '');
+            // Start with current profile or create new one
+            $updatedProfile = $currentProfile ?? UserProfile::create(
+                userId: $userId
+            );
 
-                if (empty($newConsumerKey) || empty($newConsumerSecret)) {
-                    Session::setErrors(['Discogs API credentials are required when setting a username']);
-                    header('Location: ?action=profile_edit');
-                    exit;
-                }
+            // Fix for empty string to null conversion
+            $discogsUsername = !empty($_POST['discogs_username']) ? trim($_POST['discogs_username']) : null;
+            $location = !empty($_POST['location']) ? trim($_POST['location']) : null;
+            $consumerKey = !empty($_POST['discogs_consumer_key']) ? trim($_POST['discogs_consumer_key']) : null;
+            $consumerSecret = !empty($_POST['discogs_consumer_secret']) ? trim($_POST['discogs_consumer_secret']) : null;
 
-                // Validate the credentials
-                if (!DiscogsService::validateCredentials(
-                    $newConsumerKey,
-                    $newConsumerSecret,
-                    'DiscogsHelper/1.0'
-                )) {
-                    Session::setErrors(['Invalid Discogs API credentials']);
-                    header('Location: ?action=profile_edit');
-                    exit;
-                }
-            }
-
-            // Create or update profile
+            // Create updated profile with new values
             $updatedProfile = new UserProfile(
-                id: $profile?->id ?? 0,  // Use 0 for new profiles
+                id: $updatedProfile->id,
                 userId: $userId,
-                location: trim($_POST['location'] ?? ''),
-                discogsUsername: $profile?->discogsUsername,
-                discogsConsumerKey: trim($_POST['discogs_consumer_key'] ?? '') ?: $profile?->discogsConsumerKey,
-                discogsConsumerSecret: trim($_POST['discogs_consumer_secret'] ?? '') ?: $profile?->discogsConsumerSecret,
-                createdAt: $profile?->createdAt ?? date('Y-m-d H:i:s'),
+                location: $location,
+                discogsUsername: $discogsUsername,
+                discogsConsumerKey: $consumerKey,
+                discogsConsumerSecret: $consumerSecret,
+                createdAt: $updatedProfile->createdAt,
                 updatedAt: date('Y-m-d H:i:s')
             );
 
-            if ($profile === null) {
-                $db->createUserProfile($updatedProfile);
-            } else {
+            // Update or create profile
+            if ($currentProfile) {
                 $db->updateUserProfile($updatedProfile);
+            } else {
+                $db->createUserProfile($updatedProfile);
             }
 
-            Logger::security('User profile updated successfully');
+            // Handle password update if needed
+            if ($passwordChanged) {
+                $db->updateUserPassword(
+                    userId: $userId,
+                    newPassword: $_POST['new_password']
+                );
+            }
+
+            // Add success message
             Session::setMessage('Profile updated successfully');
-            header('Location: ?action=profile');
+            header('Location: ?action=profile&success=true');
             exit;
 
         } catch (DuplicateDiscogsUsernameException $e) {
-            Session::setErrors(['This Discogs username is already registered']);
-            header('Location: ?action=profile_edit');
-            exit;
+            $errors[] = $e->getMessage();
+        } catch (Exception $e) {
+            Logger::error('Profile Update Error: ' . $e->getMessage());
+            $errors[] = 'An error occurred while saving your profile';
         }
-    } else {
-        // Update profile without changing Discogs username
-        $updatedProfile = new UserProfile(
-            id: $profile?->id ?? 0,
-            userId: $userId,
-            location: trim($_POST['location'] ?? ''),
-            discogsUsername: $profile?->discogsUsername,
-            discogsConsumerKey: trim($_POST['discogs_consumer_key'] ?? '') ?: $profile?->discogsConsumerKey,
-            discogsConsumerSecret: trim($_POST['discogs_consumer_secret'] ?? '') ?: $profile?->discogsConsumerSecret,
-            createdAt: $profile?->createdAt ?? date('Y-m-d H:i:s'),
-            updatedAt: date('Y-m-d H:i:s')
-        );
-
-        if ($profile === null) {
-            $db->createUserProfile($updatedProfile);
-        } else {
-            $db->updateUserProfile($updatedProfile);
-        }
-
-        Logger::security('User profile updated successfully');
-        Session::setMessage('Profile updated successfully');
-        header('Location: ?action=profile');
-        exit;
     }
+
+    // If we get here, there were errors
+    Session::setErrors($errors);
+    header('Location: ?action=profile_edit');
+    exit;
 }
 
 match ($action) {
