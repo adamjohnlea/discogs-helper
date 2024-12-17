@@ -1,0 +1,140 @@
+{
+  "projectInfo": {
+    "name": "Discogs Helper",
+    "type": "php",
+    "phpVersion": "8.3",
+    "architecture": "mvc"
+  },
+  "paths": {
+    "src": "src",
+    "public": "public",
+    "templates": "templates",
+    "database": "database",
+    "migrations": "database/migrations",
+    "config": "config",
+    "logs": "logs"
+  },
+  "rules": {
+    "php": {
+      "required": [
+        "declare(strict_types=1)",
+        "return type declarations",
+        "parameter type hints"
+      ],
+      "preferences": {
+        "properties": "readonly",
+        "classes": "final by default",
+        "naming": "camelCase"
+      }
+    },
+    "database": {
+      "engine": "SQLite",
+      "requirements": [
+        "prepared statements",
+        "transactions for multi-operations",
+        "user data isolation"
+      ],
+      "tables": {
+        "users": "User accounts and authentication",
+        "releases": "Music releases with user_id foreign key",
+        "user_profiles": "Discogs credentials and user settings"
+      },
+      "migrations": {
+        "format": "YYYY_MM_DD_HHMMSS_description",
+        "methods": ["up()", "down()"]
+      }
+    },
+    "security": {
+      "required": [
+        "input sanitization",
+        "CSRF protection",
+        "password_hash/password_verify",
+        "authentication for non-public routes",
+        "user data isolation",
+        "htmlspecialchars for HTML output"
+      ]
+    },
+    "templates": {
+      "rules": [
+        "PHPDoc type hints required",
+        "HTML escape all output",
+        "presentation logic only",
+        "no business logic"
+      ]
+    },
+    "errorHandling": {
+      "requirements": [
+        "custom exception classes per domain",
+        "Logger::log/error methods",
+        "user messages via Session::setMessage",
+        "handle DiscogsCredentialsException"
+      ]
+    },
+    "api": {
+      "discogs": {
+        "userAgent": "DiscogsHelper/1.0",
+        "requirements": [
+          "store credentials per user",
+          "implement rate limiting",
+          "handle DiscogsCredentialsException"
+        ]
+      }
+    },
+    "dependencies": {
+      "required": {
+        "guzzlehttp/guzzle": "^7.8"
+      }
+    },
+    "session": {
+      "rules": [
+        "initialize at application start",
+        "check authentication state",
+        "implement flash messages",
+        "require CSRF tokens"
+      ]
+    },
+    "logging": {
+      "rules": [
+        "use Logger::log for info",
+        "use Logger::error for errors",
+        "include context",
+        "log security events"
+      ]
+    },
+    "images": {
+      "covers": {
+        "storage": "public/images/covers/",
+        "rules": [
+          "use relative paths",
+          "handle missing images",
+          "implement cleanup"
+        ]
+      }
+    },
+    "import": {
+      "requirements": [
+        "batch processing",
+        "rate limiting",
+        "duplicate detection",
+        "error recovery",
+        "progress tracking"
+      ]
+    },
+    "testing": {
+      "requirements": [
+        "maintain test database",
+        "mock API calls",
+        "isolate user data",
+        "handle edge cases"
+      ]
+    },
+    "documentation": {
+      "required": [
+        "PHPDoc blocks",
+        "template type hints",
+        "clear error messages",
+        "inline comments"
+      ]
+    }
+  }
+}
