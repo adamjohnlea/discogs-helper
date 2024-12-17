@@ -218,3 +218,7 @@ chmod -R 755 logs</code></pre>
     <li><b>Added credential validation</b></li>
     <li><b>Enhanced error handling and user feedback</b></li>
 </ul>
+
+<h2>Pair Programming</h2>
+
+<p>Used the amazing <a href="https://www.cursor.com/">Cursor Editor</a> to pair program this application. Incredibly helpful tool.</p>
