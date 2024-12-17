@@ -32,3 +32,6 @@ Thumbs.db
 # Testing
 .phpunit.result.cache
 /phpunit.xml 
+
+# Cursor
+.cursorrules
