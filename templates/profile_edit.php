@@ -221,6 +221,36 @@ $styles = '
         border-radius: 4px;
         color: #1976d2;
     }
+    
+    .button,
+    .button.secondary {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1rem;
+        line-height: 1.5;
+        text-decoration: none;
+        color: #fff;
+        background: #007bff;
+        display: inline-flex;
+        align-items: center;
+        height: 38px;
+        box-sizing: border-box;
+        margin: 0;
+    }
+    
+    .button:hover {
+        background: #0056b3;
+    }
+    
+    .button.secondary {
+        background: #666;
+    }
+    
+    .button.secondary:hover {
+        background: #555;
+    }
 </style>';
 
 require __DIR__ . '/layout.php';
