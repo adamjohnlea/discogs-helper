@@ -23,6 +23,25 @@ if (!isset($discogs)) {
     exit;
 }
 
+// Change this section in import.php
+// Get the current user's Discogs username from user_profiles
+$currentUser = $auth->getCurrentUser();
+$profile = $db->getUserProfile($currentUser->id);
+
+if (!$profile || !$profile->discogsUsername) {
+    Session::setMessage('Please set up your Discogs username in your profile first.');
+    header('Location: ?action=profile_edit');
+    exit;
+}
+
+$discogsUsername = $profile->discogsUsername;
+
+if (empty($discogsUsername)) {
+    Session::setMessage('Please set up your Discogs username in your profile first.');
+    header('Location: ?action=profile_edit');
+    exit;
+}
+
 // Set unlimited execution time for this script
 set_time_limit(0);
 ini_set('memory_limit', '256M');
@@ -263,15 +282,11 @@ if ($progress) {
 } else {
     $content .= '
     <article>
-        <p>Enter your Discogs username to import your collection.</p>
+        <p>Ready to import your Discogs collection for username: <strong>' . htmlspecialchars($discogsUsername) . '</strong></p>
+        <p>This process will import all releases from your Discogs collection. You can pause and resume the import at any time.</p>
         <form method="post" action="?action=import">
             ' . Csrf::getFormField() . '
-            <label for="username">Discogs Username:</label>
-            <input type="text" 
-                   id="username" 
-                   name="username" 
-                   required 
-                   placeholder="Enter your Discogs username...">
+            <input type="hidden" name="username" value="' . htmlspecialchars($discogsUsername) . '">
             <button type="submit">Import Collection</button>
         </form>
     </article>';
