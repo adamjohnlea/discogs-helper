@@ -80,13 +80,13 @@ if ($tracklist = $release->getTracklistArray()) {
     </div>';
 }
 
-if ($release->notes) {
-    $content .= '
+$content .= '
     <div class="notes-section">
         <h2>Notes</h2>
-        <p>' . nl2br(htmlspecialchars($release->notes)) . '</p>
+        <p>' . ($release->notes 
+            ? nl2br(htmlspecialchars($release->notes))
+            : '<em>No notes available in Discogs record</em>') . '</p>
     </div>';
-}
 
 $content .= '</div>';
 
