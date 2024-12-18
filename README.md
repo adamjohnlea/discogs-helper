@@ -79,6 +79,7 @@ chmod -R 755 logs</code></pre>
     <li>Create a Discogs account if you don't have one</li>
     <li>Register your application at <a href="https://www.discogs.com/settings/developers">Discogs Developer Settings</a></li>
     <li>Get your Consumer Key and Consumer Secret</li>
+    <li>In your Discogs Privacy settings, set "Allow others to browse my collection"</li>
     <li>Register an account in the application</li>
     <li>Add your Discogs credentials in your profile settings</li>
 </ol>
