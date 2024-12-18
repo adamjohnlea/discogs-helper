@@ -77,7 +77,7 @@ final class Database
     }
 
     public function getAllReleases(
-        int $userId, 
+        int $userId,
         ?string $search = null,
         ?string $format = null,
         ?string $sort = null,
@@ -98,13 +98,13 @@ final class Database
 
         // Default sort remains date_added DESC if no sort specified
         $query .= ' ORDER BY ' . match($sort) {
-            'year' => 'year',
-            'title' => 'title',
-            'artist' => 'artist',
-            'date_added' => 'date_added',
-            default => 'date_added DESC'
-        };
-        
+                'year' => 'year',
+                'title' => 'title',
+                'artist' => 'artist',
+                'date_added' => 'date_added',
+                default => 'date_added DESC'
+            };
+
         // Only add direction if a sort is specified
         if ($sort) {
             $query .= ' ' . ($direction === 'DESC' ? 'DESC' : 'ASC');
@@ -215,26 +215,6 @@ final class Database
         ]);
 
         return (int)$this->pdo->lastInsertId();
-    }
-
-    private function createReleaseFromRow(array $row): Release
-    {
-        return new Release(
-            id: (int)$row['id'],
-            discogsId: (int)$row['discogs_id'],
-            title: $row['title'],
-            artist: $row['artist'],
-            year: $row['year'] ? (int)$row['year'] : null,
-            format: $row['format'],
-            formatDetails: $row['format_details'],
-            coverPath: $row['cover_path'],
-            notes: $row['notes'],
-            tracklist: $row['tracklist'],
-            identifiers: $row['identifiers'],
-            dateAdded: $row['date_added'],
-            createdAt: $row['created_at'],
-            updatedAt: $row['updated_at']
-        );
     }
 
     public function createUserProfile(UserProfile $profile): void
@@ -391,12 +371,49 @@ final class Database
             LIMIT 1
         ');
         $stmt->execute(['user_id' => $userId]);
-        
+
         if ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             return $this->createReleaseFromRow($row);
         }
-        
+
         return null;
     }
 
+    public function updateReleaseNotes(int $userId, int $releaseId, ?string $notes): bool
+    {
+        $stmt = $this->pdo->prepare('
+            UPDATE releases 
+            SET notes = :notes,
+                updated_at = :updated_at
+            WHERE id = :id 
+            AND user_id = :user_id
+        ');
+
+        return $stmt->execute([
+            'id' => $releaseId,
+            'user_id' => $userId,
+            'notes' => $notes,
+            'updated_at' => date('Y-m-d H:i:s')
+        ]);
+    }
+
+    private function createReleaseFromRow(array $row): Release
+    {
+        return new Release(
+            id: (int)$row['id'],
+            discogsId: (int)$row['discogs_id'],
+            title: $row['title'],
+            artist: $row['artist'],
+            year: $row['year'] ? (int)$row['year'] : null,
+            format: $row['format'],
+            formatDetails: $row['format_details'],
+            coverPath: $row['cover_path'],
+            notes: $row['notes'],
+            tracklist: $row['tracklist'],
+            identifiers: $row['identifiers'],
+            dateAdded: $row['date_added'],
+            createdAt: $row['created_at'],
+            updatedAt: $row['updated_at']
+        );
+    }
 }
