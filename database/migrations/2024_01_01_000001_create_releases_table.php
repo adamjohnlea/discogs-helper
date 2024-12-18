@@ -20,7 +20,8 @@ final class CreateReleasesTable
         $this->pdo->exec('
             CREATE TABLE IF NOT EXISTS releases (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                discogs_id INTEGER NOT NULL UNIQUE,
+                user_id INTEGER NOT NULL,
+                discogs_id INTEGER NOT NULL,
                 title TEXT NOT NULL,
                 artist TEXT NOT NULL,
                 year INTEGER,
@@ -32,15 +33,14 @@ final class CreateReleasesTable
                 identifiers TEXT NOT NULL,
                 date_added TEXT,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                UNIQUE(user_id, discogs_id)
             )
         ');
 
-        // Check if index exists before creating it
-        $stmt = $this->pdo->query("SELECT name FROM sqlite_master WHERE type='index' AND name='idx_discogs_id'");
-        if (!$stmt->fetch()) {
-            $this->pdo->exec('CREATE INDEX idx_discogs_id ON releases(discogs_id)');
-        }
+        // Create an index for the composite key for better performance
+        $this->pdo->exec('CREATE INDEX IF NOT EXISTS idx_user_discogs ON releases(user_id, discogs_id)');
     }
 
     public function down(): void
