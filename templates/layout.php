@@ -158,6 +158,47 @@
             max-width: 800px; /* Match the input width */
             width: 100%;
         }
+
+        .collection-toolbar {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            padding: 1rem 0;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-group,
+        .sort-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .collection-toolbar select {
+            min-width: 140px;
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            background-color: white;
+        }
+
+        .sort-group select {
+            min-width: 140px; /* Makes sort options wider */
+        }
+
+        @media (max-width: 768px) {
+            .collection-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.5rem;
+            }
+            
+            .filter-group,
+            .sort-group {
+                flex-wrap: wrap;
+            }
+        }
     </style>
     <?php echo $styles ?? ''; // Add any page-specific styles ?>
 </head>

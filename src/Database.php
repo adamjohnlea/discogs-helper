@@ -76,22 +76,39 @@ final class Database
         ]);
     }
 
-    public function getAllReleases(int $userId, string $search = null): array
-    {
+    public function getAllReleases(
+        int $userId, 
+        ?string $search = null,
+        ?string $format = null,
+        ?string $sort = null,
+        string $direction = 'ASC'
+    ): array {
         $query = 'SELECT * FROM releases WHERE user_id = :user_id';
         $params = ['user_id' => $userId];
 
         if ($search) {
-            $query .= ' AND (
-                title LIKE :search 
-                OR artist LIKE :search 
-                OR format LIKE :search 
-                OR format_details LIKE :search
-            )';
-            $params['search'] = '%' . $search . '%';
+            $query .= ' AND (title LIKE :search OR artist LIKE :search)';
+            $params['search'] = "%$search%";
         }
 
-        $query .= ' ORDER BY date_added DESC';
+        if ($format) {
+            $query .= ' AND format = :format';
+            $params['format'] = $format;
+        }
+
+        // Default sort remains date_added DESC if no sort specified
+        $query .= ' ORDER BY ' . match($sort) {
+            'year' => 'year',
+            'title' => 'title',
+            'artist' => 'artist',
+            'date_added' => 'date_added',
+            default => 'date_added DESC'
+        };
+        
+        // Only add direction if a sort is specified
+        if ($sort) {
+            $query .= ' ' . ($direction === 'DESC' ? 'DESC' : 'ASC');
+        }
 
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($params);
@@ -339,6 +356,18 @@ final class Database
             'password_hash' => password_hash($newPassword, PASSWORD_DEFAULT),
             'updated_at' => date('Y-m-d H:i:s')
         ]);
+    }
+
+    public function getUniqueFormats(int $userId): array
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT DISTINCT format 
+            FROM releases 
+            WHERE user_id = :user_id 
+            ORDER BY format ASC
+        ');
+        $stmt->execute(['user_id' => $userId]);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 
 }
