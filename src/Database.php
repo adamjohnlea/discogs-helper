@@ -370,4 +370,33 @@ final class Database
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 
+    public function getCollectionSize(int $userId): int
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT COUNT(*) 
+            FROM releases 
+            WHERE user_id = :user_id
+        ');
+        $stmt->execute(['user_id' => $userId]);
+        return (int)$stmt->fetchColumn();
+    }
+
+    public function getLatestRelease(int $userId): ?Release
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT * 
+            FROM releases 
+            WHERE user_id = :user_id 
+            ORDER BY date_added DESC 
+            LIMIT 1
+        ');
+        $stmt->execute(['user_id' => $userId]);
+        
+        if ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            return $this->createReleaseFromRow($row);
+        }
+        
+        return null;
+    }
+
 }

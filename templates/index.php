@@ -1,9 +1,11 @@
 <?php
 /** @var Auth $auth Authentication instance */
+/** @var Database $db Database instance */
 /** @var string|null $content Main content HTML */
 /** @var string|null $styles Page-specific styles */
 
 use DiscogsHelper\Auth;
+use DiscogsHelper\Database;
 
 if (!$auth->isLoggedIn()) {
     $content = '
@@ -26,6 +28,11 @@ if (!$auth->isLoggedIn()) {
         </div>
     </div>';
 } else {
+    // Get the current user's collection stats
+    $userId = $auth->getCurrentUser()->id;
+    $collectionSize = $db->getCollectionSize($userId);
+    $latestRelease = $db->getLatestRelease($userId);
+
     $content = '
     <div class="dashboard-section">
         <h1>Your Collection Dashboard</h1>
@@ -33,13 +40,31 @@ if (!$auth->isLoggedIn()) {
         <div class="stats-grid">
             <div class="stat-card">
                 <h3>Collection Size</h3>
-                <p class="stat-number">0</p>
+                <p class="stat-number">' . number_format($collectionSize) . '</p>
                 <p class="stat-label">Records</p>
-            </div>
+            </div>';
+
+    if ($latestRelease) {
+        $content .= '
+            <div class="stat-card latest-addition">
+                <h3>Latest Addition</h3>
+                ' . ($latestRelease->coverPath 
+                    ? '<img src="' . htmlspecialchars($latestRelease->getCoverUrl()) . '" 
+                           alt="Latest addition cover" class="latest-cover">' 
+                    : '') . '
+                <p class="latest-title">' . htmlspecialchars($latestRelease->title) . '</p>
+                <p class="latest-artist">' . htmlspecialchars($latestRelease->artist) . '</p>
+                <p class="stat-label">Added ' . date('F j, Y', strtotime($latestRelease->dateAdded)) . '</p>
+            </div>';
+    } else {
+        $content .= '
             <div class="stat-card">
-                <h3>Last Import</h3>
-                <p class="stat-label">Never imported</p>
-            </div>
+                <h3>Latest Addition</h3>
+                <p class="stat-label">No releases yet</p>
+            </div>';
+    }
+
+    $content .= '
         </div>
 
         <div class="action-buttons">
@@ -118,6 +143,29 @@ $styles = '
     .stat-label {
         color: #666;
         margin: 0;
+    }
+
+    .latest-addition {
+        text-align: center;
+    }
+
+    .latest-cover {
+        width: 120px;
+        height: 120px;
+        object-fit: contain;
+        margin: 1rem auto;
+        border-radius: 4px;
+    }
+
+    .latest-title {
+        font-weight: bold;
+        margin: 0.5rem 0 0.25rem 0;
+        font-size: 1.1rem;
+    }
+
+    .latest-artist {
+        color: #666;
+        margin: 0 0 0.5rem 0;
     }
 </style>';
 
