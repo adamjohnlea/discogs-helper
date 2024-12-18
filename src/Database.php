@@ -397,6 +397,31 @@ final class Database
         ]);
     }
 
+    public function updateReleaseDetails(int $userId, int $releaseId, string $artist, string $title): bool
+    {
+        // Validate required fields
+        if (trim($artist) === '' || trim($title) === '') {
+            return false;
+        }
+
+        $stmt = $this->pdo->prepare('
+            UPDATE releases 
+            SET artist = :artist,
+                title = :title,
+                updated_at = :updated_at
+            WHERE id = :id 
+            AND user_id = :user_id
+        ');
+
+        return $stmt->execute([
+            'id' => $releaseId,
+            'user_id' => $userId,
+            'artist' => trim($artist),
+            'title' => trim($title),
+            'updated_at' => date('Y-m-d H:i:s')
+        ]);
+    }
+
     private function createReleaseFromRow(array $row): Release
     {
         return new Release(

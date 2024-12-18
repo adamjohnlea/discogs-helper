@@ -28,7 +28,34 @@ $csrfToken = Csrf::generate();
 $content = '
 <div class="release-view">
     <a href="?action=list" class="button">← Back to list</a>
-    <h1>' . htmlspecialchars($release->title) . '</h1>
+    
+    <!-- Title Section -->
+    <div class="title-section" id="titleSection">
+        <div class="view-mode" id="titleView">
+            <h1>' . htmlspecialchars($release->title) . '</h1>
+            <button type="button" class="button edit-button" id="editDetailsBtn">Edit</button>
+        </div>
+        
+        <!-- Edit Mode for Title and Artist -->
+        <div class="edit-mode" id="detailsEdit" style="display: none;">
+            <form id="editDetailsForm" method="post" action="?action=process-edit-details">
+                <input type="hidden" name="csrf_token" value="' . htmlspecialchars($csrfToken) . '">
+                <input type="hidden" name="releaseId" value="' . htmlspecialchars($id) . '">
+                <div class="form-group">
+                    <label for="title">Title:</label>
+                    <input type="text" id="title" name="title" value="' . htmlspecialchars($release->title) . '" required class="edit-input">
+                </div>
+                <div class="form-group">
+                    <label for="artist">Artist:</label>
+                    <input type="text" id="artist" name="artist" value="' . htmlspecialchars($release->artist) . '" required class="edit-input">
+                </div>
+                <div class="button-group">
+                    <button type="submit" class="button save-button">Save</button>
+                    <button type="button" class="button cancel-button" id="cancelDetailsBtn">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
     
     <div class="release-details">
         <div class="cover-section">
@@ -39,7 +66,7 @@ $content = '
         </div>
 
         <div class="info-section">
-            <p><strong>Artist(s):</strong> ' . htmlspecialchars($release->artist) . '</p>
+            <p id="artistDisplay"><strong>Artist(s):</strong> <span class="artist-value">' . htmlspecialchars($release->artist) . '</span></p>
             <p><strong>Year:</strong> ' . ($release->year ?? 'Unknown') . '</p>
             <p><strong>Format:</strong> ' . htmlspecialchars($release->formatDetails) . '</p>';
 
@@ -120,6 +147,47 @@ $styles = '
         margin: 0 auto;
     }
 
+    .title-section {
+        margin-bottom: 2rem;
+    }
+
+    .view-mode {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+
+    .view-mode h1 {
+        margin: 0;
+    }
+
+    .edit-mode {
+        background: rgba(0, 0, 0, 0.03);
+        padding: 1rem;
+        border-radius: 8px;
+        margin-top: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+    }
+
+    .edit-input {
+        width: 100%;
+        padding: 0.5rem;
+        font-size: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        margin-bottom: 0.5rem;
+    }
+
     .release-details {
         display: grid;
         grid-template-columns: minmax(300px, 1fr) 2fr;
@@ -173,7 +241,6 @@ $styles = '
         border-radius: 8px;
     }
 
-    /* New styles for notes editing */
     .notes-header {
         display: flex;
         justify-content: space-between;
@@ -227,69 +294,65 @@ $styles = '
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
+    // Notes editing functionality
     const notesView = document.getElementById("notesView");
     const notesEdit = document.getElementById("notesEdit");
     const editBtn = document.getElementById("editNotesBtn");
     const cancelBtn = document.getElementById("cancelNotesBtn");
     const editForm = document.getElementById("editNotesForm");
 
-    // Switch to edit mode
+    // Details editing elements
+    const titleView = document.getElementById("titleView");
+    const detailsEdit = document.getElementById("detailsEdit");
+    const editDetailsBtn = document.getElementById("editDetailsBtn");
+    const cancelDetailsBtn = document.getElementById("cancelDetailsBtn");
+    const editDetailsForm = document.getElementById("editDetailsForm");
+    const artistDisplay = document.getElementById("artistDisplay");
+
+    // Notes editing handlers
     editBtn.addEventListener("click", function() {
         notesView.style.display = "none";
         notesEdit.style.display = "block";
         editBtn.style.display = "none";
     });
 
-    // Cancel editing
     cancelBtn.addEventListener("click", function() {
         notesView.style.display = "block";
         notesEdit.style.display = "none";
         editBtn.style.display = "inline-block";
     });
 
-    // Handle form submission
     editForm.addEventListener("submit", function(e) {
         e.preventDefault();
         
         const formData = new FormData(editForm);
         
-        console.log("Submitting form...");
-        
         fetch("?action=process-edit", {
             method: "POST",
             body: formData
         })
-        .then(response => {
-            console.log("Response status:", response.status);
-            console.log("Response headers:", [...response.headers.entries()]);
-            return response.text().then(text => {
-                console.log("Raw response:", text);
-                try {
-                    return JSON.parse(text);
-                } catch (e) {
-                    console.error("JSON parse error:", e);
-                    console.log("Invalid JSON response:", text);
-                    throw new Error("Server returned invalid JSON");
-                }
-            });
-        })
+        .then(response => response.text().then(text => {
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                console.error("JSON parse error:", e);
+                throw new Error("Server returned invalid JSON");
+            }
+        }))
         .then(data => {
-            console.log("Parsed data:", data);
             if (data.success) {
-                // Update the view with new notes
                 const formattedNotes = data.notes
                     ? data.notes
-                        .replace(/\r\n/g, "\n")  // Normalize line endings
-                        .split("\n")             // Split into lines
-                        .map(line => line.trim()) // Trim each line
-                        .join("\n")              // Join back together
+                        .replace(/\r\n/g, "\n")
+                        .split("\n")
+                        .map(line => line.trim())
+                        .join("\n")
                     : "";
                 
                 notesView.innerHTML = formattedNotes
                     ? "<p>" + formattedNotes + "</p>"
                     : "<p><em>No notes available</em></p>";
                 
-                // Switch back to view mode
                 notesView.style.display = "block";
                 notesEdit.style.display = "none";
                 editBtn.style.display = "inline-block";
@@ -298,9 +361,51 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         })
         .catch(error => {
-            console.error("Detailed error:", error);
-            console.error("Error stack:", error.stack);
             alert("Error saving notes. Please try again. Error: " + error.message);
+        });
+    });
+
+    // Details editing handlers
+    editDetailsBtn.addEventListener("click", function() {
+        titleView.style.display = "none";
+        detailsEdit.style.display = "block";
+    });
+
+    cancelDetailsBtn.addEventListener("click", function() {
+        titleView.style.display = "flex";
+        detailsEdit.style.display = "none";
+    });
+
+    editDetailsForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(editDetailsForm);
+        
+        fetch("?action=process-edit-details", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => response.text().then(text => {
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                console.error("JSON parse error:", e);
+                throw new Error("Server returned invalid JSON");
+            }
+        }))
+        .then(data => {
+            if (data.success) {
+                document.querySelector("h1").textContent = data.title;
+                document.querySelector(".artist-value").textContent = data.artist;
+                
+                titleView.style.display = "flex";
+                detailsEdit.style.display = "none";
+            } else {
+                alert("Error saving details: " + (data.message || "Unknown error"));
+            }
+        })
+        .catch(error => {
+            alert("Error saving details. Please try again. Error: " + error.message);
         });
     });
 });

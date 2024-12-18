@@ -43,13 +43,33 @@ $userId = $auth->getCurrentUser()->id;
 
 // Validate input
 $releaseId = filter_input(INPUT_POST, 'releaseId', FILTER_VALIDATE_INT);
-$notes = isset($_POST['notes']) ? trim($_POST['notes']) : null;
+$artist = trim($_POST['artist'] ?? '');
+$title = trim($_POST['title'] ?? '');
 
+// Validate required fields
 if (!$releaseId) {
     header('Content-Type: application/json');
     echo json_encode([
         'success' => false,
         'message' => 'Invalid release ID'
+    ]);
+    exit;
+}
+
+if ($artist === '') {
+    header('Content-Type: application/json');
+    echo json_encode([
+        'success' => false,
+        'message' => 'Artist is required'
+    ]);
+    exit;
+}
+
+if ($title === '') {
+    header('Content-Type: application/json');
+    echo json_encode([
+        'success' => false,
+        'message' => 'Title is required'
     ]);
     exit;
 }
@@ -65,26 +85,27 @@ if (!$release) {
     exit;
 }
 
-// Update the notes
+// Update the details
 try {
-    $success = $db->updateReleaseNotes($userId, $releaseId, $notes);
+    $success = $db->updateReleaseDetails($userId, $releaseId, $artist, $title);
 
     header('Content-Type: application/json');
     if ($success) {
         echo json_encode([
             'success' => true,
-            'notes' => $notes
+            'artist' => $artist,
+            'title' => $title
         ]);
     } else {
         echo json_encode([
             'success' => false,
-            'message' => 'Failed to update notes'
+            'message' => 'Failed to update release details'
         ]);
     }
 } catch (Exception $e) {
     header('Content-Type: application/json');
     echo json_encode([
         'success' => false,
-        'message' => 'An error occurred while updating notes'
+        'message' => 'An error occurred while updating release details'
     ]);
 }

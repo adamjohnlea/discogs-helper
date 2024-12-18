@@ -84,7 +84,7 @@ if ($action === 'logout') {
 }
 
 // Protected routes check
-$protected_routes = ['search', 'list', 'import', 'view', 'preview', 'add', 'process-edit'];  // Add process-edit here
+$protected_routes = ['search', 'list', 'import', 'view', 'preview', 'add', 'process-edit', 'process-edit-details'];
 if (in_array($action, $protected_routes) && !$auth->isLoggedIn()) {
     // Store the intended page for post-login redirect
     $_SESSION['intended_page'] = $_SERVER['REQUEST_URI'];
@@ -253,7 +253,8 @@ match ($action) {
     'register' => require __DIR__ . '/../templates/register.php',
     'profile' => require __DIR__ . '/../templates/profile.php',
     'profile_edit' => require __DIR__ . '/../templates/profile_edit.php',
-    'process-edit' => require __DIR__ . '/../templates/process-edit.php',  // Add this line
+    'process-edit' => require __DIR__ . '/../templates/process-edit.php',
+    'process-edit-details' => require __DIR__ . '/../templates/process-edit-details.php',
     'profile_update' => handleProfileUpdate($auth, $db),
     default => require __DIR__ . '/../templates/index.php',
 };
