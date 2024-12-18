@@ -395,7 +395,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }))
         .then(data => {
             if (data.success) {
-                document.querySelector("h1").textContent = data.title;
+                document.querySelector("#titleView h1").textContent = data.title;
                 document.querySelector(".artist-value").textContent = data.artist;
                 
                 titleView.style.display = "flex";
