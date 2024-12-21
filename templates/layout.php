@@ -391,7 +391,8 @@
                         <a href="?action=search" <?= (isset($_GET['action']) && $_GET['action'] === 'search') ? 'class="active"' : '' ?>>Search Discogs</a>
                         <a href="?action=list" <?= (isset($_GET['action']) && $_GET['action'] === 'list') ? 'class="active"' : '' ?>>My Collection</a>
                         <a href="?action=import" <?= (isset($_GET['action']) && $_GET['action'] === 'import') ? 'class="active"' : '' ?>>Import Collection</a>
-                        <a href="?action=profile" <?= (isset($_GET['action']) && $_GET['action'] === 'profile') ? 'class="active"' : '' ?>>Profile</a>
+                        <a href="?action=wantlist" <?= (isset($_GET['action']) && $_GET['action'] === 'wantlist') ? 'class="active"' : '' ?>>Want List</a>
+                        <a href="?action=profile" <?= (isset($_GET['action']) && $_GET['action'] === 'profile') ? 'class="active"' : '' ?>>Profile</a>   
                     <?php endif; ?>
                 </nav>
 
@@ -413,7 +414,7 @@
     </main>
 
     <footer>
-        <p><small>Powered by Discogs API & Coffee</small></p>
+        <p><small>Powered by Discogs API & Coffee Since 2024 | Lovingly Crafted in Boise, Idaho</small></p>
     </footer>
 
     <script>

@@ -199,4 +199,27 @@ final class DiscogsService
         }
     }
 
+    public function getWantlist(string $username, int $page = 1): array
+    {
+        $response = $this->client->get("/users/{$username}/wants", [
+            'query' => [
+                'page' => $page,
+                'per_page' => 100
+            ]
+        ]);
+        
+        return json_decode($response->getBody()->getContents(), true);
+    }
+
+    public function addToWantlist(string $username, int $releaseId): array
+    {
+        $response = $this->client->put("/users/{$username}/wants/{$releaseId}");
+        return json_decode($response->getBody()->getContents(), true);
+    }
+
+    public function removeFromWantlist(string $username, int $releaseId): void
+    {
+        $this->client->delete("/users/{$username}/wants/{$releaseId}");
+    }
+
 }

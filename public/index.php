@@ -13,6 +13,7 @@ use DiscogsHelper\Auth;
 use DiscogsHelper\UserProfile;
 use DiscogsHelper\Exceptions\DiscogsCredentialsException;
 use DiscogsHelper\Exceptions\DuplicateDiscogsUsernameException;
+use DiscogsHelper\Security\Csrf;
 
 // Initialize logger and session
 Logger::initialize(__DIR__ . '/..');
@@ -32,7 +33,7 @@ $auth = new Auth($db);
 
 // Create DiscogsService instance for routes that need it
 $discogs = null;
-if (in_array($action, ['search', 'import', 'view', 'preview', 'add'])) {
+if (in_array($action, ['search', 'import', 'view', 'preview', 'add', 'sync_wantlist'])) {
     $discogs = createDiscogsService($auth, $db);
 }
 
@@ -84,7 +85,7 @@ if ($action === 'logout') {
 }
 
 // Protected routes check
-$protected_routes = ['search', 'list', 'import', 'view', 'preview', 'add', 'process-edit', 'process-edit-details'];
+$protected_routes = ['search', 'list', 'import', 'view', 'preview', 'add', 'process-edit', 'process-edit-details', 'wantlist', 'sync_wantlist'];
 if (in_array($action, $protected_routes) && !$auth->isLoggedIn()) {
     // Store the intended page for post-login redirect
     $_SESSION['intended_page'] = $_SERVER['REQUEST_URI'];
@@ -242,6 +243,16 @@ function handleProfileUpdate(Auth $auth, Database $db): void
     exit;
 }
 
+function requireAuth(): void {
+    global $auth;
+    if (!$auth->isLoggedIn()) {
+        $_SESSION['intended_page'] = $_SERVER['REQUEST_URI'];
+        Session::setMessage('Please log in to access this feature.');
+        header('Location: ?action=login');
+        exit;
+    }
+}
+
 match ($action) {
     'search' => require __DIR__ . '/../templates/search.php',
     'view' => require __DIR__ . '/../templates/view.php',
@@ -256,5 +267,7 @@ match ($action) {
     'process-edit' => require __DIR__ . '/../templates/process-edit.php',
     'process-edit-details' => require __DIR__ . '/../templates/process-edit-details.php',
     'profile_update' => handleProfileUpdate($auth, $db),
+    'wantlist' => require __DIR__ . '/../templates/wantlist.php',
+    'sync_wantlist' => require __DIR__ . '/../templates/sync_wantlist.php',
     default => require __DIR__ . '/../templates/index.php',
 };

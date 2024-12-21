@@ -441,4 +441,39 @@ final class Database
             updatedAt: $row['updated_at']
         );
     }
+
+    public function addWantlistItem(int $userId, array $release, ?float $priceThreshold = null): void
+    {
+        $stmt = $this->pdo->prepare('
+            INSERT INTO wantlist_items 
+            (user_id, discogs_id, artist, title, notes, rating, price_threshold)
+            VALUES (:user_id, :discogs_id, :artist, :title, :notes, :rating, :price_threshold)
+            ON CONFLICT(user_id, discogs_id) DO UPDATE SET
+            notes = :notes,
+            rating = :rating,
+            price_threshold = :price_threshold
+        ');
+        
+        $stmt->execute([
+            'user_id' => $userId,
+            'discogs_id' => $release['id'],
+            'artist' => $release['artist'],
+            'title' => $release['title'],
+            'notes' => $release['notes'] ?? null,
+            'rating' => $release['rating'] ?? null,
+            'price_threshold' => $priceThreshold
+        ]);
+    }
+
+    public function getWantlistItems(int $userId): array
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT * FROM wantlist_items 
+            WHERE user_id = :user_id 
+            ORDER BY date_added DESC
+        ');
+        
+        $stmt->execute(['user_id' => $userId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
