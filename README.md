@@ -30,6 +30,7 @@
             <li>View detailed release information</li>
             <li>Import your Discogs collection</li>
             <li>Add individual releases to your local collection</li>
+            <li>Import your wantlist from Discogs</li>
         </ul>
     </li>
     <li>Collection Management
@@ -118,6 +119,7 @@ chmod -R 755 logs</code></pre>
       <li>Add releases to your personal collection</li>
       <li>View and manage your collection</li>
       <li>Import your existing Discogs collection</li>
+      <li>Sync your Discogs wantlist</li>
     </ul>
   </li>
 </ol>
@@ -217,6 +219,7 @@ chmod -R 755 logs</code></pre>
     <li>Added collection sorting and filtering</li>
     <li>Added cover art selection during import</li>
     <li>Added search within collection feature</li>
+    <li>Added wantlist sync with Discogs</li>
 </ul>
 
 <h2>Pair Programming</h2>
