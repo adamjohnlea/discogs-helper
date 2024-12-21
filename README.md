@@ -20,24 +20,28 @@
         <ul>
             <li>Secure login and registration</li>
             <li>Password protection</li>
-            <li><b>User profiles with individual settings</b></li>
+            <li>User profiles with individual settings</li>
         </ul>
     </li>
     <li>Discogs Integration
         <ul>
-            <li><b>Personal API credential management</b></li>
+            <li>Personal API credential management</li>
             <li>Search Discogs database</li>
             <li>View detailed release information</li>
             <li>Import your Discogs collection</li>
-            <li>Add individual releases to your collection</li>
+            <li>Add individual releases to your local collection</li>
         </ul>
     </li>
     <li>Collection Management
         <ul>
             <li>View your complete collection</li>
             <li>Automatic cover art downloading</li>
-            <li>Track listing support</li>
             <li>Format and release details</li>
+            <li>Sorting options (by artist, title, date added)</li>
+            <li>Filtering by format</li>
+            <li>Search within collection</li>
+            <li>Notes management</li>
+            <li>Cover art selection</li>
         </ul>
     </li>
 </ul>
@@ -80,7 +84,7 @@ chmod -R 755 logs</code></pre>
     <li>Register your application at <a href="https://www.discogs.com/settings/developers">Discogs Developer Settings</a></li>
     <li>Get your Consumer Key and Consumer Secret</li>
     <li>In your Discogs Privacy settings, set "Allow others to browse my collection"</li>
-    <li>Register an account in the application</li>
+    <li>Register an account in the local application</li>
     <li>Add your Discogs credentials in your profile settings</li>
 </ol>
 
@@ -141,22 +145,12 @@ chmod -R 755 logs</code></pre>
   <li>Protected database location</li>
 </ul>
 
-<h2>Configuration</h2>
-
-<p>Additional configuration options in config/config.php:</p>
-<ul>
-  <li>Database settings</li>
-  <li>API configuration</li>
-  <li>Rate limiting parameters</li>
-  <li>Authentication options</li>
-  <li>User profile settings</li>
-</ul>
 
 <h2>Security</h2>
 
 <ul>
 <li>User passwords are securely hashed</li>
-    <li><b>Individual API credentials per user</b></li>
+    <li>Individual API credentials per user</li>
     <li>Session-based authentication</li>
     <li>Input validation and sanitization</li>
   <li>Session security measures</li>
@@ -213,11 +207,16 @@ chmod -R 755 logs</code></pre>
 
 <h2>Recent Updates</h2>
 <ul>
-    <li><b>Moved from environment variables to database-stored credentials</b></li>
-    <li><b>Added user profiles with individual Discogs API credentials</b></li>
-    <li><b>Improved session handling and security</b></li>
-    <li><b>Added credential validation</b></li>
-    <li><b>Enhanced error handling and user feedback</b></li>
+    <li>Moved from environment variables to database-stored credentials</li>
+    <li>Added user profiles with individual Discogs API credentials</li>
+    <li>Improved session handling and security</li>
+    <li>Added credential validation</li>
+    <li>Enhanced error handling and user feedback</li>
+    <li>Added release notes editing feature</li>
+    <li>Added release details editing</li>
+    <li>Added collection sorting and filtering</li>
+    <li>Added cover art selection during import</li>
+    <li>Added search within collection feature</li>
 </ul>
 
 <h2>Pair Programming</h2>
