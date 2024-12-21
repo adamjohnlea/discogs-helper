@@ -29,6 +29,16 @@ $content = '
 <h1>My Releases' . ($searchQuery ? ': Search Results' : '') . '</h1>
 
 <div class="collection-toolbar">
+    <form class="search-group" method="GET">
+        <input type="hidden" name="action" value="list">
+        <input type="search"
+               name="q"
+               placeholder="Search your collection..."
+               value="' . htmlspecialchars($searchQuery ?? '') . '"
+               aria-label="Search collection">
+        <button type="submit">Search</button>
+    </form>
+
     <div class="filter-group">
         <label for="format">Format:</label>
         <select name="format" id="format">
