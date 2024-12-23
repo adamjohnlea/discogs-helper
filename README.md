@@ -26,11 +26,13 @@
     <li>Discogs Integration
         <ul>
             <li>Personal API credential management</li>
+            <li>OAuth authentication for full API access</li>
             <li>Search Discogs database</li>
             <li>View detailed release information</li>
             <li>Import your Discogs collection</li>
             <li>Add individual releases to your local collection</li>
-            <li>Import your wantlist from Discogs</li>
+            <li>Import and manage your wantlist from Discogs</li>
+            <li>Automatic Discogs wantlist synchronization</li>
         </ul>
     </li>
     <li>Collection Management
@@ -43,6 +45,19 @@
             <li>Search within collection</li>
             <li>Notes management</li>
             <li>Cover art selection</li>
+            <li>One-click adding from wantlist to collection</li>
+        </ul>
+    </li>
+    <li>Wantlist Management
+        <ul>
+            <li>Sync wantlist with Discogs</li>
+            <li>View detailed wantlist item information</li>
+            <li>Add notes to wantlist items</li>
+            <li>Automatic cover art management</li>
+            <li>One-click removal from wantlist</li>
+            <li>Direct addition to collection</li>
+            <li>Automatic Discogs synchronization</li>
+            <li>Duplicate checking during sync</li>
         </ul>
     </li>
 </ul>
@@ -87,6 +102,7 @@ chmod -R 755 logs</code></pre>
     <li>In your Discogs Privacy settings, set "Allow others to browse my collection"</li>
     <li>Register an account in the local application</li>
     <li>Add your Discogs credentials in your profile settings</li>
+    <li>Connect your account using OAuth for full API access</li>
 </ol>
 
 <h2>Usage</h2>
@@ -209,17 +225,39 @@ chmod -R 755 logs</code></pre>
 
 <h2>Recent Updates</h2>
 <ul>
-    <li>Moved from environment variables to database-stored credentials</li>
-    <li>Added user profiles with individual Discogs API credentials</li>
-    <li>Improved session handling and security</li>
-    <li>Added credential validation</li>
-    <li>Enhanced error handling and user feedback</li>
-    <li>Added release notes editing feature</li>
-    <li>Added release details editing</li>
-    <li>Added collection sorting and filtering</li>
-    <li>Added cover art selection during import</li>
-    <li>Added search within collection feature</li>
-    <li>Added wantlist sync with Discogs</li>
+    <li>Added OAuth authentication for full Discogs API access</li>
+    <li>Implemented comprehensive wantlist management
+        <ul>
+            <li>Sync with Discogs wantlist</li>
+            <li>Cover image handling</li>
+            <li>Detailed view for wantlist items</li>
+            <li>Notes management for wantlist items</li>
+            <li>One-click addition to collection</li>
+            <li>Automatic Discogs wantlist removal</li>
+        </ul>
+    </li>
+    <li>Enhanced security with OAuth token management</li>
+    <li>Added rate limiting for API requests</li>
+    <li>Improved error handling and user feedback</li>
+    <li>Added duplicate checking during wantlist sync</li>
+    <li>Updated UI for better user experience</li>
+    <li>Added automatic cleanup of cover images</li>
+    <li>Implemented CSRF protection for all operations</li>
+    <li>Added comprehensive logging for debugging</li>
+    <li>Previous updates:
+        <ul>
+            <li>Moved from environment variables to database-stored credentials</li>
+            <li>Added user profiles with individual Discogs API credentials</li>
+            <li>Improved session handling and security</li>
+            <li>Added credential validation</li>
+            <li>Enhanced error handling and user feedback</li>
+            <li>Added release notes editing feature</li>
+            <li>Added release details editing</li>
+            <li>Added collection sorting and filtering</li>
+            <li>Added cover art selection during import</li>
+            <li>Added search within collection feature</li>
+        </ul>
+    </li>
 </ul>
 
 <h2>Pair Programming</h2>
