@@ -6,6 +6,46 @@
 
 use DiscogsHelper\Auth;
 use DiscogsHelper\Database;
+use DiscogsHelper\Security\Csrf;
+
+$styles = '<style>
+.button-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.button-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.button-group .button {
+    flex: 1;
+    text-align: center;
+}
+
+.remove-item {
+    background: #dc3545;
+}
+
+.success-message {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+    border-radius: 0.25rem;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .button-group {
+        flex-direction: column;
+    }
+}
+</style>';
 
 $searchQuery = $_GET['q'] ?? null;
 // Make sure user is logged in and get their ID from the session
@@ -97,7 +137,14 @@ if (empty($releases) && $searchQuery) {
     
     $content .= '
             <p>
-                <a href="?action=view&id=' . $release->id . '" class="button">View Details</a>
+                <div class="button-groups">
+                    <div class="button-group">
+                        <a href="?action=view&id=' . $release->id . '" class="button">View Details</a>
+                    </div>
+                    <div class="button-group">
+                        <button class="button remove-item" data-release-id="' . $release->discogsId . '">Remove</button>
+                    </div>
+                </div>
             </p>
         </div>
     </div>';
@@ -160,6 +207,63 @@ document.addEventListener("DOMContentLoaded", function() {
     format.addEventListener("change", updateCollection);
     sort.addEventListener("change", updateCollection);
     direction.addEventListener("change", updateCollection);
+
+    // Remove item functionality
+    document.querySelectorAll(".remove-item").forEach(button => {
+        button.addEventListener("click", async function() {
+            const releaseId = this.dataset.releaseId;
+            console.log("Remove clicked for release ID:", releaseId); // Debug log
+            
+            if (confirm("Remove this release from your collection? This will also remove it from your Discogs collection.")) {
+                try {
+                    console.log("Sending remove request..."); // Debug log
+                    const response = await fetch("?action=remove_collection", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Accept": "application/json"
+                        },
+                        body: JSON.stringify({
+                            csrf_token: "' . Csrf::generate() . '",
+                            id: releaseId
+                        })
+                    });
+                    
+                    console.log("Response status:", response.status); // Debug log
+                    const responseData = await response.json();
+                    console.log("Response data:", responseData); // Debug log
+                    
+                    if (!response.ok) {
+                        throw new Error(responseData.error || "Failed to remove from collection");
+                    }
+                    
+                    // Remove card with animation
+                    const card = this.closest(".album-card");
+                    card.style.opacity = "0";
+                    setTimeout(() => {
+                        card.remove();
+                        // If no more cards, reload to show empty state
+                        if (document.querySelectorAll(".album-card").length === 0) {
+                            location.reload();
+                        }
+                    }, 300);
+                    
+                    // Show success message
+                    const message = document.createElement("div");
+                    message.className = "success-message";
+                    message.textContent = "Release removed from collection successfully!";
+                    document.querySelector(".album-grid").insertAdjacentElement("beforebegin", message);
+                    
+                    // Remove message after 3 seconds
+                    setTimeout(() => message.remove(), 3000);
+                    
+                } catch (error) {
+                    console.error("Error removing from collection:", error);
+                    alert("Error removing from collection: " + error.message);
+                }
+            }
+        });
+    });
 });
 </script>';
 

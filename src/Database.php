@@ -434,6 +434,43 @@ final class Database
         ]);
     }
 
+    public function deleteRelease(int $userId, int $discogsId): bool
+    {
+        $stmt = $this->pdo->prepare('
+            DELETE FROM releases 
+            WHERE user_id = :user_id 
+            AND discogs_id = :discogs_id
+        ');
+        
+        return $stmt->execute([
+            'user_id' => $userId,
+            'discogs_id' => $discogsId
+        ]);
+    }
+
+    public function getReleaseByDiscogsId(int $userId, int $discogsId): ?Release
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT * 
+            FROM releases 
+            WHERE user_id = :user_id 
+            AND discogs_id = :discogs_id
+        ');
+
+        $stmt->execute([
+            'user_id' => $userId,
+            'discogs_id' => $discogsId
+        ]);
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$row) {
+            return null;
+        }
+
+        return $this->createReleaseFromRow($row);
+    }
+
     private function createReleaseFromRow(array $row): Release
     {
         return new Release(

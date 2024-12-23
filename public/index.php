@@ -33,7 +33,7 @@ $auth = new Auth($db);
 
 // Create DiscogsService instance for routes that need it
 $discogs = null;
-if (in_array($action, ['search', 'import', 'view', 'preview', 'add', 'sync_wantlist', 'remove_wantlist'])) {
+if (in_array($action, ['search', 'import', 'view', 'preview', 'add', 'sync_wantlist', 'remove_wantlist', 'remove_collection'])) {
     $discogs = createDiscogsService($auth, $db);
 }
 
@@ -85,7 +85,7 @@ if ($action === 'logout') {
 }
 
 // Protected routes check
-$protected_routes = ['search', 'list', 'import', 'view', 'preview', 'add', 'process-edit', 'process-edit-details', 'wantlist', 'sync_wantlist', 'view_wantlist', 'process-wantlist-notes', 'remove_wantlist'];
+$protected_routes = ['search', 'list', 'import', 'view', 'preview', 'add', 'process-edit', 'process-edit-details', 'wantlist', 'sync_wantlist', 'view_wantlist', 'process-wantlist-notes', 'remove_wantlist', 'remove_collection'];
 if (in_array($action, $protected_routes) && !$auth->isLoggedIn()) {
     // Store the intended page for post-login redirect
     $_SESSION['intended_page'] = $_SERVER['REQUEST_URI'];
@@ -277,5 +277,6 @@ match ($action) {
     'view_wantlist' => require __DIR__ . '/../templates/view_wantlist.php',
     'process-wantlist-notes' => require __DIR__ . '/../templates/process-wantlist-notes.php',
     'discogs_auth' => require __DIR__ . '/../templates/discogs_auth.php',
+    'remove_collection' => require __DIR__ . '/../templates/remove_collection.php',
     default => require __DIR__ . '/../templates/index.php',
 };

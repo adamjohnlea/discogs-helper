@@ -296,4 +296,48 @@ final class DiscogsService
             throw $e;
         }
     }
+
+    public function removeFromCollection(string $username, int $releaseId, int $instanceId): void
+    {
+        if (!$this->oauthToken || !$this->oauthTokenSecret) {
+            throw new DiscogsCredentialsException('OAuth credentials required for modifying collection');
+        }
+
+        try {
+            // Remove from the main collection folder (folder_id = 1)
+            $response = $this->client->delete("/users/{$username}/collection/folders/1/releases/{$releaseId}/instances/{$instanceId}");
+            $this->handleRateLimit($response->getHeaders());
+        } catch (ClientException $e) {
+            if ($e->getResponse()->getStatusCode() === 429) {
+                // If we hit the rate limit, wait and try again
+                sleep(60);
+                $this->removeFromCollection($username, $releaseId, $instanceId);
+                return;
+            }
+            throw $e;
+        }
+    }
+
+    public function getCollectionItemInstance(string $username, int $releaseId): ?int
+    {
+        try {
+            $response = $this->client->get("/users/{$username}/collection/releases/{$releaseId}");
+            $this->handleRateLimit($response->getHeaders());
+            $data = json_decode($response->getBody()->getContents(), true);
+            
+            // Return the instance ID of the first occurrence in the collection
+            if (!empty($data['releases'][0]['instance_id'])) {
+                return (int)$data['releases'][0]['instance_id'];
+            }
+            
+            return null;
+        } catch (ClientException $e) {
+            if ($e->getResponse()->getStatusCode() === 429) {
+                // If we hit the rate limit, wait and try again
+                sleep(60);
+                return $this->getCollectionItemInstance($username, $releaseId);
+            }
+            throw $e;
+        }
+    }
 }
