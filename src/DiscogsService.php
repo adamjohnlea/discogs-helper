@@ -19,7 +19,9 @@ final class DiscogsService
     public function __construct(
         private readonly string $consumerKey,
         private readonly string $consumerSecret,
-        private readonly string $userAgent
+        private readonly string $userAgent,
+        private readonly ?string $oauthToken = null,
+        private readonly ?string $oauthTokenSecret = null
     ) {
         if (empty($consumerKey) || empty($consumerSecret)) {
             throw new DiscogsCredentialsException('Discogs credentials are required');
@@ -36,6 +38,19 @@ final class DiscogsService
 
     private function getAuthorizationHeader(): string
     {
+        if ($this->oauthToken !== null && $this->oauthTokenSecret !== null) {
+            // Use OAuth authentication for user-specific actions
+            return sprintf(
+                'OAuth oauth_consumer_key="%s", oauth_nonce="%s", oauth_token="%s", oauth_signature="%s", oauth_signature_method="PLAINTEXT", oauth_timestamp="%d"',
+                $this->consumerKey,
+                bin2hex(random_bytes(16)),
+                $this->oauthToken,
+                $this->consumerSecret . '&' . $this->oauthTokenSecret,
+                time()
+            );
+        }
+
+        // Use simple key/secret authentication for non-user-specific actions
         return sprintf(
             'Discogs key=%s, secret=%s',
             $this->consumerKey,
@@ -201,25 +216,63 @@ final class DiscogsService
 
     public function getWantlist(string $username, int $page = 1): array
     {
-        $response = $this->client->get("/users/{$username}/wants", [
-            'query' => [
-                'page' => $page,
-                'per_page' => 100
-            ]
-        ]);
-        
-        return json_decode($response->getBody()->getContents(), true);
+        try {
+            $response = $this->client->get("/users/{$username}/wants", [
+                'query' => [
+                    'page' => $page,
+                    'per_page' => 100
+                ]
+            ]);
+            
+            $this->handleRateLimit($response->getHeaders());
+            return json_decode($response->getBody()->getContents(), true);
+        } catch (ClientException $e) {
+            if ($e->getResponse()->getStatusCode() === 429) {
+                // If we hit the rate limit, wait and try again
+                sleep(60);
+                return $this->getWantlist($username, $page);
+            }
+            throw $e;
+        }
     }
 
     public function addToWantlist(string $username, int $releaseId): array
     {
-        $response = $this->client->put("/users/{$username}/wants/{$releaseId}");
-        return json_decode($response->getBody()->getContents(), true);
+        if (!$this->oauthToken || !$this->oauthTokenSecret) {
+            throw new DiscogsCredentialsException('OAuth credentials required for modifying wantlist');
+        }
+
+        try {
+            $response = $this->client->put("/users/{$username}/wants/{$releaseId}");
+            $this->handleRateLimit($response->getHeaders());
+            return json_decode($response->getBody()->getContents(), true);
+        } catch (ClientException $e) {
+            if ($e->getResponse()->getStatusCode() === 429) {
+                // If we hit the rate limit, wait and try again
+                sleep(60);
+                return $this->addToWantlist($username, $releaseId);
+            }
+            throw $e;
+        }
     }
 
     public function removeFromWantlist(string $username, int $releaseId): void
     {
-        $this->client->delete("/users/{$username}/wants/{$releaseId}");
-    }
+        if (!$this->oauthToken || !$this->oauthTokenSecret) {
+            throw new DiscogsCredentialsException('OAuth credentials required for modifying wantlist');
+        }
 
+        try {
+            $response = $this->client->delete("/users/{$username}/wants/{$releaseId}");
+            $this->handleRateLimit($response->getHeaders());
+        } catch (ClientException $e) {
+            if ($e->getResponse()->getStatusCode() === 429) {
+                // If we hit the rate limit, wait and try again
+                sleep(60);
+                $this->removeFromWantlist($username, $releaseId);
+                return;
+            }
+            throw $e;
+        }
+    }
 }

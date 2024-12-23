@@ -231,10 +231,12 @@ final class Database
             INSERT INTO user_profiles (
                 user_id, location, discogs_username,
                 discogs_consumer_key, discogs_consumer_secret,
+                discogs_oauth_token, discogs_oauth_token_secret,
                 created_at, updated_at
             ) VALUES (
                 :user_id, :location, :discogs_username,
                 :discogs_consumer_key, :discogs_consumer_secret,
+                :discogs_oauth_token, :discogs_oauth_token_secret,
                 :created_at, :updated_at
             )
         ');
@@ -245,6 +247,8 @@ final class Database
             'discogs_username' => $profile->discogsUsername,
             'discogs_consumer_key' => $profile->discogsConsumerKey,
             'discogs_consumer_secret' => $profile->discogsConsumerSecret,
+            'discogs_oauth_token' => $profile->discogsOAuthToken,
+            'discogs_oauth_token_secret' => $profile->discogsOAuthTokenSecret,
             'created_at' => $profile->createdAt,
             'updated_at' => $profile->updatedAt
         ]);
@@ -270,6 +274,8 @@ final class Database
             discogsUsername: $row['discogs_username'],
             discogsConsumerKey: $row['discogs_consumer_key'],
             discogsConsumerSecret: $row['discogs_consumer_secret'],
+            discogsOAuthToken: $row['discogs_oauth_token'],
+            discogsOAuthTokenSecret: $row['discogs_oauth_token_secret'],
             createdAt: $row['created_at'],
             updatedAt: $row['updated_at']
         );
@@ -283,6 +289,8 @@ final class Database
                 discogs_username = :discogs_username,
                 discogs_consumer_key = :discogs_consumer_key,
                 discogs_consumer_secret = :discogs_consumer_secret,
+                discogs_oauth_token = :discogs_oauth_token,
+                discogs_oauth_token_secret = :discogs_oauth_token_secret,
                 updated_at = :updated_at
             WHERE user_id = :user_id
         ');
@@ -293,6 +301,8 @@ final class Database
             'discogs_username' => $profile->discogsUsername,
             'discogs_consumer_key' => $profile->discogsConsumerKey,
             'discogs_consumer_secret' => $profile->discogsConsumerSecret,
+            'discogs_oauth_token' => $profile->discogsOAuthToken,
+            'discogs_oauth_token_secret' => $profile->discogsOAuthTokenSecret,
             'updated_at' => $profile->updatedAt
         ]);
     }
@@ -317,6 +327,8 @@ final class Database
             discogsUsername: $row['discogs_username'],
             discogsConsumerKey: $row['discogs_consumer_key'],
             discogsConsumerSecret: $row['discogs_consumer_secret'],
+            discogsOAuthToken: $row['discogs_oauth_token'],
+            discogsOAuthTokenSecret: $row['discogs_oauth_token_secret'],
             createdAt: $row['created_at'],
             updatedAt: $row['updated_at']
         );
@@ -446,12 +458,20 @@ final class Database
     {
         $stmt = $this->pdo->prepare('
             INSERT INTO wantlist_items 
-            (user_id, discogs_id, artist, title, notes, rating, price_threshold)
-            VALUES (:user_id, :discogs_id, :artist, :title, :notes, :rating, :price_threshold)
+            (user_id, discogs_id, artist, title, notes, rating, price_threshold, cover_path,
+             year, format, format_details, tracklist, identifiers)
+            VALUES (:user_id, :discogs_id, :artist, :title, :notes, :rating, :price_threshold, :cover_path,
+                    :year, :format, :format_details, :tracklist, :identifiers)
             ON CONFLICT(user_id, discogs_id) DO UPDATE SET
             notes = :notes,
             rating = :rating,
-            price_threshold = :price_threshold
+            price_threshold = :price_threshold,
+            cover_path = :cover_path,
+            year = :year,
+            format = :format,
+            format_details = :format_details,
+            tracklist = :tracklist,
+            identifiers = :identifiers
         ');
         
         $stmt->execute([
@@ -461,7 +481,13 @@ final class Database
             'title' => $release['title'],
             'notes' => $release['notes'] ?? null,
             'rating' => $release['rating'] ?? null,
-            'price_threshold' => $priceThreshold
+            'price_threshold' => $priceThreshold,
+            'cover_path' => $release['cover_path'] ?? null,
+            'year' => $release['year'] ?? null,
+            'format' => $release['format'] ?? null,
+            'format_details' => $release['format_details'] ?? null,
+            'tracklist' => $release['tracklist'] ?? null,
+            'identifiers' => $release['identifiers'] ?? null
         ]);
     }
 
@@ -475,5 +501,69 @@ final class Database
         
         $stmt->execute(['user_id' => $userId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getWantlistItem(int $userId, int $discogsId): ?array
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT * FROM wantlist_items 
+            WHERE user_id = :user_id 
+            AND discogs_id = :discogs_id
+        ');
+        
+        $stmt->execute([
+            'user_id' => $userId,
+            'discogs_id' => $discogsId
+        ]);
+        
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ?: null;
+    }
+
+    public function getWantlistItemById(int $userId, int $id): ?array
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT * FROM wantlist_items 
+            WHERE user_id = :user_id 
+            AND id = :id
+        ');
+        
+        $stmt->execute([
+            'user_id' => $userId,
+            'id' => $id
+        ]);
+        
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ?: null;
+    }
+
+    public function deleteWantlistItem(int $userId, int $discogsId): bool
+    {
+        $stmt = $this->pdo->prepare('
+            DELETE FROM wantlist_items 
+            WHERE user_id = :user_id 
+            AND discogs_id = :discogs_id
+        ');
+        
+        return $stmt->execute([
+            'user_id' => $userId,
+            'discogs_id' => $discogsId
+        ]);
+    }
+
+    public function updateWantlistNotes(int $userId, int $itemId, ?string $notes): bool
+    {
+        $stmt = $this->pdo->prepare('
+            UPDATE wantlist_items 
+            SET notes = :notes
+            WHERE id = :id 
+            AND user_id = :user_id
+        ');
+        
+        return $stmt->execute([
+            'id' => $itemId,
+            'user_id' => $userId,
+            'notes' => $notes
+        ]);
     }
 }

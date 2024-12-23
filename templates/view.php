@@ -8,6 +8,7 @@
 use DiscogsHelper\Auth;
 use DiscogsHelper\Database;
 use DiscogsHelper\Security\Csrf;
+use DiscogsHelper\Logger;
 
 if (!$auth->isLoggedIn()) {
     header('Location: ?action=login');
@@ -71,17 +72,52 @@ $content = '
             <p><strong>Format:</strong> ' . htmlspecialchars($release->formatDetails) . '</p>';
 
 if ($identifiers = $release->getIdentifiersArray()) {
+    // Log all identifier types
+    Logger::log('Identifier types for release ' . $release->discogsId . ': ' . 
+        implode(', ', array_unique(array_column($identifiers, 'type'))));
+        
     $content .= '
             <div class="identifiers">
                 <p><strong>Identifiers:</strong></p>
                 <ul>';
+    // Group identifiers by type
+    $groupedIdentifiers = [];
     foreach ($identifiers as $identifier) {
-        if (in_array(strtolower($identifier['type']), ['barcode', 'upc'])) {
-            $content .= '
+        $type = strtolower($identifier['type']);
+        if (!isset($groupedIdentifiers[$type])) {
+            $groupedIdentifiers[$type] = [];
+        }
+        $groupedIdentifiers[$type][] = $identifier;
+    }
+    
+    // Display identifiers in a specific order
+    $typeOrder = ['barcode', 'upc', 'matrix', 'matrix / runout', 'label code', 'rights society', 'catalog number', 'other'];
+    foreach ($typeOrder as $type) {
+        if (isset($groupedIdentifiers[$type])) {
+            foreach ($groupedIdentifiers[$type] as $identifier) {
+                $content .= '
                     <li>
                         ' . htmlspecialchars(ucfirst($identifier['type'])) . ': 
                         <code>' . htmlspecialchars($identifier['value']) . '</code>
+                        ' . (!empty($identifier['description']) ? 
+                            '<small>(' . htmlspecialchars($identifier['description']) . ')</small>' : '') . '
                     </li>';
+            }
+        }
+    }
+    
+    // Show any remaining types that weren't in our predefined order
+    foreach ($groupedIdentifiers as $type => $typeIdentifiers) {
+        if (!in_array($type, $typeOrder)) {
+            foreach ($typeIdentifiers as $identifier) {
+                $content .= '
+                    <li>
+                        ' . htmlspecialchars(ucfirst($identifier['type'])) . ': 
+                        <code>' . htmlspecialchars($identifier['value']) . '</code>
+                        ' . (!empty($identifier['description']) ? 
+                            '<small>(' . htmlspecialchars($identifier['description']) . ')</small>' : '') . '
+                    </li>';
+            }
         }
     }
     $content .= '

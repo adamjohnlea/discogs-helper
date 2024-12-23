@@ -4,32 +4,69 @@
 /** @var DiscogsService $discogs Discogs service instance */
 
 use DiscogsHelper\Security\Csrf;
+use DiscogsHelper\Session;
 
 $userId = $auth->getCurrentUser()->id;
 $wantlist = $db->getWantlistItems($userId);
 
 $content = '
-<div class="wantlist-container">
-    <div class="wantlist-toolbar">
+<div class="wantlist-container">';
+
+// Display success message if exists
+if (Session::hasMessage()) {
+    $content .= '
+    <div class="success-message">
+        ' . htmlspecialchars(Session::getMessage()) . '
+    </div>';
+}
+
+$content .= '
+    <div class="collection-toolbar">
         <h1>Want List</h1>
-        <button id="syncWantlist" class="button">Sync with Discogs</button>
+        <div class="toolbar-actions">
+            <button id="syncWantlist" class="button">Sync with Discogs</button>
+        </div>
     </div>
     
-    <div class="wantlist-grid">';
+    <div class="album-grid">';
 
-foreach ($wantlist as $item) {
-    $content .= '
-    <div class="wantlist-item" data-release-id="' . $item['discogs_id'] . '">
-        <h3>' . htmlspecialchars($item['artist']) . ' - ' . htmlspecialchars($item['title']) . '</h3>
-        <div class="item-actions">
-            <button class="set-price-alert">Set Price Alert</button>
-            <button class="remove-item">Remove</button>
-        </div>
-        <div class="price-alert" style="display: none;">
-            <input type="number" step="0.01" placeholder="Price threshold">
-            <button class="save-threshold">Save</button>
-        </div>
-    </div>';
+if (empty($wantlist)) {
+    $content .= '<p>Your wantlist is empty. Use the "Sync with Discogs" button to import your Discogs wantlist.</p>';
+} else {
+    foreach ($wantlist as $item) {
+        $content .= '
+        <div class="album-card" data-release-id="' . $item['discogs_id'] . '">
+            ' . (!empty($item['cover_path']) ? '
+            <img src="' . htmlspecialchars($item['cover_path']) . '" alt="Album cover">' : '') . '
+            <div class="details">
+                <h3>' . htmlspecialchars($item['title']) . '</h3>
+                <p>' . htmlspecialchars($item['artist']) . '</p>';
+                
+        if ($item['year']) {
+            $content .= '<p><small>Released: ' . htmlspecialchars($item['year']) . '</small></p>';
+        }
+        
+        if ($item['format']) {
+            $content .= '<p><small>Format: ' . htmlspecialchars($item['format']);
+            if ($item['format_details']) {
+                $content .= ' (' . htmlspecialchars($item['format_details']) . ')';
+            }
+            $content .= '</small></p>';
+        }
+        
+        $content .= '
+                <div class="button-groups">
+                    <div class="button-group">
+                        <button class="button add-to-collection" data-release-id="' . $item['discogs_id'] . '">Add to Collection</button>
+                        <button class="button remove-item" data-release-id="' . $item['discogs_id'] . '">Remove</button>
+                    </div>
+                    <div class="button-group">
+                        <a href="?action=view_wantlist&id=' . $item['id'] . '" class="button view-details">View Details</a>
+                    </div>
+                </div>
+            </div>
+        </div>';
+    }
 }
 
 $content .= '
@@ -83,6 +120,100 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
     
+    // Add to Collection functionality
+    document.querySelectorAll(".add-to-collection").forEach(button => {
+        button.addEventListener("click", async function() {
+            const releaseId = this.dataset.releaseId;
+            if (confirm("Add this release to your collection?")) {
+                try {
+                    const response = await fetch("?action=add", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Accept": "application/json"
+                        },
+                        body: JSON.stringify({
+                            csrf_token: "' . Csrf::generate() . '",
+                            id: releaseId
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error("Failed to add to collection");
+                    }
+                    
+                    // Remove card with animation
+                    const card = this.closest(".album-card");
+                    card.style.opacity = "0";
+                    setTimeout(() => {
+                        card.remove();
+                        // If no more cards, reload to show empty state
+                        if (document.querySelectorAll(".album-card").length === 0) {
+                            location.reload();
+                        }
+                    }, 300);
+                    
+                    // Show success message
+                    const message = document.createElement("div");
+                    message.className = "success-message";
+                    message.textContent = "Release added to collection successfully!";
+                    document.querySelector(".wantlist-container").insertBefore(
+                        message,
+                        document.querySelector(".album-grid")
+                    );
+                    
+                    // Remove message after 3 seconds
+                    setTimeout(() => message.remove(), 3000);
+                    
+                } catch (error) {
+                    console.error("Error adding to collection:", error);
+                    alert("Error adding to collection: " + error.message);
+                }
+            }
+        });
+    });
+    
+    // Remove item functionality
+    document.querySelectorAll(".remove-item").forEach(button => {
+        button.addEventListener("click", async function() {
+            const releaseId = this.dataset.releaseId;
+            if (confirm("Remove this release from your wantlist?")) {
+                try {
+                    const response = await fetch("?action=remove_wantlist", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Accept": "application/json"
+                        },
+                        body: JSON.stringify({
+                            csrf_token: "' . Csrf::generate() . '",
+                            id: releaseId
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error("Failed to remove from wantlist");
+                    }
+                    
+                    // Remove card with animation
+                    const card = this.closest(".album-card");
+                    card.style.opacity = "0";
+                    setTimeout(() => {
+                        card.remove();
+                        // If no more cards, reload to show empty state
+                        if (document.querySelectorAll(".album-card").length === 0) {
+                            location.reload();
+                        }
+                    }, 300);
+                    
+                } catch (error) {
+                    console.error("Error removing from wantlist:", error);
+                    alert("Error removing from wantlist: " + error.message);
+                }
+            }
+        });
+    });
+    
     syncButton.addEventListener("click", syncWantlist);
 });
 </script>';
@@ -95,77 +226,61 @@ $styles = '
         padding: 1rem;
     }
 
-    .wantlist-toolbar {
+    .toolbar-actions {
         display: flex;
-        justify-content: space-between;
+        gap: 1rem;
         align-items: center;
-        margin-bottom: 2rem;
     }
 
-    .wantlist-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 1.5rem;
-    }
-
-    .wantlist-item {
-        background: #f8f9fa;
-        border-radius: 8px;
-        padding: 1.5rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-
-    .wantlist-item h3 {
-        margin: 0 0 1rem 0;
-        font-size: 1.1rem;
-        line-height: 1.4;
-    }
-
-    .item-actions {
+    .button-groups {
         display: flex;
+        flex-direction: column;
         gap: 0.5rem;
         margin-top: 1rem;
     }
 
-    .item-actions button {
-        flex: 1;
-        padding: 0.5rem;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.2s;
+    .button-group {
+        display: flex;
+        gap: 0.5rem;
     }
 
-    .set-price-alert {
+    .button-group .button {
+        flex: 1;
+        text-align: center;
+        cursor: pointer;
+    }
+
+    .add-to-collection {
         background: #28a745;
-        color: white;
     }
 
     .remove-item {
         background: #dc3545;
-        color: white;
     }
 
-    .price-alert {
-        margin-top: 1rem;
-        display: flex;
-        gap: 0.5rem;
+    .view-details {
+        background: #17a2b8;
     }
 
-    .price-alert input {
-        flex: 1;
-        padding: 0.5rem;
-        border: 1px solid #ddd;
+    .album-card {
+        transition: opacity 0.3s ease;
+    }
+
+    .success-message {
+        max-width: 800px;
+        margin: 1rem auto;
+        padding: 1rem;
+        background: #e8f5e9;
+        border: 1px solid #4caf50;
         border-radius: 4px;
+        color: #2e7d32;
+        text-align: center;
     }
 
-    .save-threshold {
-        background: #007bff;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        padding: 0.5rem 1rem;
-        cursor: pointer;
+    @media (max-width: 768px) {
+        .button-group {
+            flex-direction: column;
+        }
     }
 </style>';
 

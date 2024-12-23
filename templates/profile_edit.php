@@ -79,24 +79,41 @@ $content .= '
             
             <div class="form-group">
                 <label for="discogs_username">Discogs Username</label>
-                <input type="text" name="discogs_username" id="discogs_username" 
-                       value="' . htmlspecialchars($profile?->discogsUsername ?? '') . '">
-                <small>Optional: Your Discogs username</small>
+                <input type="text" id="discogs_username" name="discogs_username" value="' . htmlspecialchars($profile?->discogsUsername ?? '') . '">
+                <small>Your Discogs username is required for collection import and wantlist sync.</small>
             </div>
 
             <div class="form-group">
-                <label for="discogs_consumer_key">Consumer Key</label>
-                <input type="text" name="discogs_consumer_key" id="discogs_consumer_key" 
-                       value="' . htmlspecialchars($profile?->discogsConsumerKey ?? '') . '">
-                <small>Optional: Your Discogs API consumer key</small>
+                <label for="discogs_consumer_key">Discogs Consumer Key</label>
+                <input type="text" id="discogs_consumer_key" name="discogs_consumer_key" value="' . htmlspecialchars($profile?->discogsConsumerKey ?? '') . '">
+                <small>Get your API credentials from <a href="https://www.discogs.com/settings/developers" target="_blank">Discogs Developer Settings</a>.</small>
             </div>
 
             <div class="form-group">
-                <label for="discogs_consumer_secret">Consumer Secret</label>
-                <input type="text" name="discogs_consumer_secret" id="discogs_consumer_secret" 
-                       value="' . htmlspecialchars($profile?->discogsConsumerSecret ?? '') . '">
-                <small>Optional: Your Discogs API consumer secret</small>
-            </div>
+                <label for="discogs_consumer_secret">Discogs Consumer Secret</label>
+                <input type="text" id="discogs_consumer_secret" name="discogs_consumer_secret" value="' . htmlspecialchars($profile?->discogsConsumerSecret ?? '') . '">
+            </div>';
+
+if ($profile?->hasDiscogsCredentials()) {
+    $content .= '
+                <div class="form-group">
+                    <label>Discogs Authorization</label>';
+    
+    if ($profile->hasDiscogsOAuth()) {
+        $content .= '
+                        <p class="success-message">Your account is connected to Discogs.</p>
+                        <a href="?action=discogs_auth" class="button secondary">Reconnect to Discogs</a>';
+    } else {
+        $content .= '
+                        <p class="info-message">Additional authorization is required for some features.</p>
+                        <a href="?action=discogs_auth" class="button">Connect to Discogs</a>';
+    }
+    
+    $content .= '
+                </div>';
+}
+
+$content .= '
         </section>
 
         <section class="form-section">
