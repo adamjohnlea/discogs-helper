@@ -275,4 +275,25 @@ final class DiscogsService
             throw $e;
         }
     }
+
+    public function addToCollection(string $username, int $releaseId): void
+    {
+        if (!$this->oauthToken || !$this->oauthTokenSecret) {
+            throw new DiscogsCredentialsException('OAuth credentials required for modifying collection');
+        }
+
+        try {
+            // Add to the main collection folder (folder_id = 1)
+            $response = $this->client->post("/users/{$username}/collection/folders/1/releases/{$releaseId}");
+            $this->handleRateLimit($response->getHeaders());
+        } catch (ClientException $e) {
+            if ($e->getResponse()->getStatusCode() === 429) {
+                // If we hit the rate limit, wait and try again
+                sleep(60);
+                $this->addToCollection($username, $releaseId);
+                return;
+            }
+            throw $e;
+        }
+    }
 }

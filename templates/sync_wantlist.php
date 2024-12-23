@@ -82,6 +82,12 @@ try {
                     // Get full release details to access cover images
                     $release = $discogs->getRelease($item['id']);
                     
+                    // Debug log the notes data
+                    Logger::log("Wantlist item {$item['id']} notes data:");
+                    Logger::log("Item notes: " . ($item['notes'] ?? 'null'));
+                    Logger::log("Release notes: " . ($release['notes'] ?? 'null'));
+                    Logger::log("Basic info notes: " . ($release['basic_information']['notes'] ?? 'null'));
+                    
                     // Format details
                     $formatDetails = array_map(function($format) {
                         return $format['name'] . (!empty($format['descriptions'])
@@ -114,7 +120,7 @@ try {
                         'id' => $item['id'],
                         'artist' => $item['basic_information']['artists'][0]['name'] ?? 'Unknown Artist',
                         'title' => $item['basic_information']['title'] ?? 'Unknown Title',
-                        'notes' => $item['notes'] ?? $release['notes'] ?? null,
+                        'notes' => $release['notes'] ?? null,
                         'rating' => $item['rating'] ?? null,
                         'cover_path' => $coverPath,
                         'year' => $release['year'] ?? null,

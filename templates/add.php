@@ -89,15 +89,20 @@ try {
         if ($wantlistItem) {
             $db->deleteWantlistItem($userId, (int)$release['id']);
             
-            // Also remove from Discogs wantlist
+            // Also remove from Discogs wantlist and add to collection
             $profile = $db->getUserProfile($userId);
             if ($profile && $profile->discogsUsername) {
                 try {
+                    // First add to collection
+                    $discogs->addToCollection($profile->discogsUsername, (int)$release['id']);
+                    Logger::log("Added item {$release['id']} to Discogs collection for user {$profile->discogsUsername}");
+
+                    // Then remove from wantlist
                     $discogs->removeFromWantlist($profile->discogsUsername, (int)$release['id']);
                     Logger::log("Removed item {$release['id']} from Discogs wantlist for user {$profile->discogsUsername}");
                 } catch (Exception $e) {
                     // Log the error but continue with the process
-                    Logger::error("Failed to remove item from Discogs wantlist: " . $e->getMessage());
+                    Logger::error("Failed to update Discogs: " . $e->getMessage());
                 }
             }
         }
