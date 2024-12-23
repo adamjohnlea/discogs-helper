@@ -47,7 +47,23 @@ if (isset($_GET['q'])) {
     $content .= '<div class="album-grid">';
 
     try {
-        $results = $discogs->searchRelease($_GET['q']);
+        $currentPage = max(1, intval($_GET['page'] ?? 1));
+        
+        $searchResults = $discogs->searchRelease(
+            $_GET['q'], 
+            $currentPage, 
+            10,
+            isset($_GET['search_type']) && $_GET['search_type'] === 'barcode'
+        );
+        
+        $results = $searchResults['results'];
+        $totalResults = $searchResults['pagination']['total'];
+        $totalPages = max(1, ceil($totalResults / 10));
+
+        if (empty($results)) {
+            $content .= '<div class="no-results">No releases found matching your search.</div>';
+        }
+
     } catch (DiscogsHelper\Exceptions\DiscogsCredentialsException $e) {
         Session::setMessage('Your Discogs credentials appear to be invalid. Please check your settings.');
         header('Location: ?action=profile_edit');
@@ -77,6 +93,51 @@ if (isset($_GET['q'])) {
     }
 
     $content .= '</div>';
+
+    if ($totalPages > 1) {
+        $content .= '<div class="pagination">';
+        
+        if ($currentPage > 1) {
+            $content .= sprintf(
+                '<a href="?action=search&q=%s&search_type=%s&page=%d" class="page-link">&laquo; Previous</a>',
+                htmlspecialchars($_GET['q']),
+                htmlspecialchars($_GET['search_type'] ?? 'text'),
+                $currentPage - 1
+            );
+        }
+
+        for ($i = max(1, $currentPage - 2); $i <= min($totalPages, $currentPage + 2); $i++) {
+            if ($i === $currentPage) {
+                $content .= sprintf('<span class="page-link current">%d</span>', $i);
+            } else {
+                $content .= sprintf(
+                    '<a href="?action=search&q=%s&search_type=%s&page=%d" class="page-link">%d</a>',
+                    htmlspecialchars($_GET['q']),
+                    htmlspecialchars($_GET['search_type'] ?? 'text'),
+                    $i,
+                    $i
+                );
+            }
+        }
+
+        if ($currentPage < $totalPages) {
+            $content .= sprintf(
+                '<a href="?action=search&q=%s&search_type=%s&page=%d" class="page-link">Next &raquo;</a>',
+                htmlspecialchars($_GET['q']),
+                htmlspecialchars($_GET['search_type'] ?? 'text'),
+                $currentPage + 1
+            );
+        }
+
+        $content .= sprintf(
+            '<div class="results-count">Showing %d-%d of %d results</div>',
+            (($currentPage - 1) * 10) + 1,
+            min($currentPage * 10, $totalResults),
+            $totalResults
+        );
+
+        $content .= '</div>';
+    }
 }
 
 $content .= '</div>';
@@ -115,6 +176,46 @@ $styles = '
         background: #ffebee;
         border-radius: 4px;
         margin: 1rem 0;
+    }
+    
+    .pagination {
+        margin: 2rem 0;
+        text-align: center;
+    }
+    
+    .page-link {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        margin: 0 0.25rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        text-decoration: none;
+        color: #333;
+    }
+    
+    .page-link:hover {
+        background-color: #f5f5f5;
+    }
+    
+    .page-link.current {
+        background-color: #007bff;
+        color: white;
+        border-color: #007bff;
+    }
+    
+    .results-count {
+        margin-top: 1rem;
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    .no-results {
+        padding: 2rem;
+        text-align: center;
+        color: #666;
+        background: #f5f5f5;
+        border-radius: 4px;
+        margin: 2rem 0;
     }
 </style>
 

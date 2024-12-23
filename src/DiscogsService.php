@@ -102,21 +102,38 @@ final class DiscogsService
         }
     }
 
-    public function searchRelease(string $query): array
-    {
-        // Check if query is a UPC/Barcode (only numbers)
-        $isBarcode = preg_match('/^\d+$/', $query);
+    public function searchRelease(
+        string $query,
+        int $page = 1,
+        int $perPage = 10,
+        bool $isBarcode = false
+    ): array {
+        $params = [
+            'q' => $query,
+            'page' => $page,
+            'per_page' => $perPage,
+            'type' => 'release'
+        ];
+
+        if ($isBarcode) {
+            unset($params['q']);
+            $params['barcode'] = $query;
+        }
 
         $response = $this->client->get('/database/search', [
-            'query' => [
-                $isBarcode ? 'barcode' : 'q' => $query,
-                'type' => 'release',
-                'per_page' => 10
-            ]
+            'query' => $params
         ]);
 
         $data = json_decode($response->getBody()->getContents(), true);
-        return $data['results'] ?? [];
+
+        return [
+            'results' => $data['results'] ?? [],
+            'pagination' => [
+                'total' => $data['pagination']['items'] ?? 0,
+                'pages' => $data['pagination']['pages'] ?? 0,
+                'current_page' => $data['pagination']['page'] ?? 1
+            ]
+        ];
     }
 
     public function getRelease(int $id): array

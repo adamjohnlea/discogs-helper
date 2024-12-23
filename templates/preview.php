@@ -109,6 +109,26 @@ try {
             color: #666;
             margin-top: 5px;
         }
+        .identifiers ul {
+            list-style: none;
+            padding-left: 20px;
+        }
+        
+        .identifiers li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .identifiers code {
+            background: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        
+        .identifiers small {
+            color: #666;
+            margin-left: 0.5rem;
+        }
 	</style>
 	<script>
 		function selectImage(imageUri) {
@@ -158,17 +178,51 @@ try {
 			<p><strong>Year:</strong> <?= $release['year'] ?? 'Unknown' ?></p>
 
             <?php if (!empty($release['identifiers'])): ?>
-				<p><strong>Identifiers:</strong></p>
-				<ul>
-                    <?php foreach ($release['identifiers'] as $identifier): ?>
-                        <?php if (in_array(strtolower($identifier['type']), ['barcode', 'upc'])): ?>
-							<li>
-                                <?= htmlspecialchars(ucfirst($identifier['type'])) ?>:
-								<span class="barcode"><?= htmlspecialchars($identifier['value']) ?></span>
-							</li>
-                        <?php endif; ?>
-                    <?php endforeach; ?>
-				</ul>
+                <div class="identifiers">
+                    <p><strong>Identifiers:</strong></p>
+                    <ul>
+                    <?php
+                    // Group identifiers by type
+                    $groupedIdentifiers = [];
+                    foreach ($release['identifiers'] as $identifier) {
+                        $type = strtolower($identifier['type']);
+                        if (!isset($groupedIdentifiers[$type])) {
+                            $groupedIdentifiers[$type] = [];
+                        }
+                        $groupedIdentifiers[$type][] = $identifier;
+                    }
+                    
+                    // Display identifiers in a specific order
+                    $typeOrder = ['barcode', 'upc', 'matrix', 'matrix / runout', 'label code', 'rights society', 'catalog number', 'other'];
+                    foreach ($typeOrder as $type) {
+                        if (isset($groupedIdentifiers[$type])) {
+                            foreach ($groupedIdentifiers[$type] as $identifier) {
+                                echo '<li>' .
+                                    htmlspecialchars(ucfirst($identifier['type'])) . ': ' .
+                                    '<code>' . htmlspecialchars($identifier['value']) . '</code>' .
+                                    (!empty($identifier['description']) ? 
+                                        ' <small>(' . htmlspecialchars($identifier['description']) . ')</small>' : '') .
+                                    '</li>';
+                            }
+                        }
+                    }
+                    
+                    // Show any remaining types that weren't in our predefined order
+                    foreach ($groupedIdentifiers as $type => $typeIdentifiers) {
+                        if (!in_array($type, $typeOrder)) {
+                            foreach ($typeIdentifiers as $identifier) {
+                                echo '<li>' .
+                                    htmlspecialchars(ucfirst($identifier['type'])) . ': ' .
+                                    '<code>' . htmlspecialchars($identifier['value']) . '</code>' .
+                                    (!empty($identifier['description']) ? 
+                                        ' <small>(' . htmlspecialchars($identifier['description']) . ')</small>' : '') .
+                                    '</li>';
+                            }
+                        }
+                    }
+                    ?>
+                    </ul>
+                </div>
             <?php endif; ?>
 
 			<p><strong>Format:</strong>
@@ -199,16 +253,53 @@ try {
 		</div>
 
 		<div class="actions">
-			<form action="?action=add" method="POST">
+			<form action="?action=add" method="POST" id="addForm">
                 <?= Csrf::getFormField() ?>
 				<input type="hidden" name="id" value="<?= $release['id'] ?>">
 				<input type="hidden" name="selected_image" id="selected_image"
 					   value="<?= !empty($release['images']) ? htmlspecialchars($release['images'][0]['uri']) : '' ?>">
-				<button type="submit" class="add-button">Add to Collection</button>
+				<button type="submit" class="add-button" id="addButton">Add to Collection</button>
 			</form>
 			<a href="javascript:history.back()" class="back-button">← Back to search</a>
 		</div>
     <?php endif; ?>
 </div>
+
+<script>
+document.getElementById('addForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const button = document.getElementById('addButton');
+    button.disabled = true;
+    button.textContent = 'Adding...';
+
+    // Submit the form
+    fetch(this.action, {
+        method: 'POST',
+        body: new FormData(this)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            window.location.href = '?action=list';
+        } else {
+            console.error('Server error:', data.message);
+            alert(data.message || 'Failed to add release to collection');
+            button.disabled = false;
+            button.textContent = 'Add to Collection';
+        }
+    })
+    .catch(error => {
+        console.error('Error details:', error);
+        alert('An error occurred while adding the release: ' + error.message);
+        button.disabled = false;
+        button.textContent = 'Add to Collection';
+    });
+});
+</script>
 </body>
 </html>

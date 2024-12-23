@@ -14,6 +14,7 @@ use DiscogsHelper\UserProfile;
 use DiscogsHelper\Exceptions\DiscogsCredentialsException;
 use DiscogsHelper\Exceptions\DuplicateDiscogsUsernameException;
 use DiscogsHelper\Security\Csrf;
+use DiscogsHelper\Controllers\ReleaseController;
 
 // Initialize logger and session
 Logger::initialize(__DIR__ . '/..');
@@ -261,7 +262,10 @@ match ($action) {
     'search' => require __DIR__ . '/../templates/search.php',
     'view' => require __DIR__ . '/../templates/view.php',
     'preview' => require __DIR__ . '/../templates/preview.php',
-    'add' => require __DIR__ . '/../templates/add.php',
+    'add' => (function() use ($auth, $db, $discogs) {
+        $releaseController = new ReleaseController($auth, $db, $discogs);
+        return $releaseController->processAdd();
+    })(),
     'import' => require __DIR__ . '/../templates/import.php',
     'list' => require __DIR__ . '/../templates/list.php',
     'login' => require __DIR__ . '/../templates/login.php',
