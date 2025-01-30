@@ -10,6 +10,7 @@ use DiscogsHelper\Security\Csrf;
 use DiscogsHelper\Logger;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
+use DiscogsHelper\Session;
 
 header('Content-Type: application/json');
 
@@ -40,11 +41,14 @@ try {
 }
 
 try {
+    // Clear any existing messages at the start of sync
+    Session::setMessage('');
+    
     $userId = $auth->getCurrentUser()->id;
     $profile = $db->getUserProfile($userId);
     
     if (!$profile || !$profile->discogsUsername) {
-        throw new RuntimeException('Discogs username not set in profile');
+        throw new RuntimeException('Discogs username not set in your profile');
     }
     
     // Set unlimited execution time for this script
@@ -158,12 +162,16 @@ try {
         'skipped' => $skippedItems
     ]);
     
+    // Set appropriate sync completion message
+    Session::setMessage("Wantlist sync completed: {$processedItems} items processed");
+    
 } catch (GuzzleException $e) {
     Logger::error('Wantlist sync error (HTTP): ' . $e->getMessage());
     http_response_code(500);
     echo json_encode(['error' => 'Failed to connect to Discogs: ' . $e->getMessage()]);
 } catch (Exception $e) {
     Logger::error('Wantlist sync error: ' . $e->getMessage());
+    Session::setMessage('Error syncing wantlist: ' . $e->getMessage());
     http_response_code(500);
     echo json_encode(['error' => $e->getMessage()]);
 } 

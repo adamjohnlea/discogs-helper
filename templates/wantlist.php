@@ -154,16 +154,20 @@ document.addEventListener("DOMContentLoaded", function() {
                     }, 300);
                     
                     // Show success message
+                    const messageContainer = document.querySelector(".wantlist-container");
+                    const existingMessages = document.querySelectorAll(".success-message");
+                    existingMessages.forEach(msg => msg.remove()); // Remove any existing messages
+
                     const message = document.createElement("div");
                     message.className = "success-message";
                     message.textContent = "Release added to collection successfully!";
-                    document.querySelector(".wantlist-container").insertBefore(
-                        message,
-                        document.querySelector(".album-grid")
-                    );
-                    
+                    messageContainer.insertBefore(message, messageContainer.firstChild);
+
                     // Remove message after 3 seconds
-                    setTimeout(() => message.remove(), 3000);
+                    setTimeout(() => {
+                        message.style.opacity = "0";
+                        setTimeout(() => message.remove(), 300);
+                    }, 3000);
                     
                 } catch (error) {
                     console.error("Error adding to collection:", error);
@@ -206,6 +210,22 @@ document.addEventListener("DOMContentLoaded", function() {
                         }
                     }, 300);
                     
+                    // Show success message
+                    const messageContainer = document.querySelector(".wantlist-container");
+                    const existingMessages = document.querySelectorAll(".success-message");
+                    existingMessages.forEach(msg => msg.remove()); // Remove any existing messages
+
+                    const message = document.createElement("div");
+                    message.className = "success-message";
+                    message.textContent = "Release removed from wantlist successfully!";
+                    messageContainer.insertBefore(message, messageContainer.firstChild);
+
+                    // Remove message after 3 seconds
+                    setTimeout(() => {
+                        message.style.opacity = "0";
+                        setTimeout(() => message.remove(), 300);
+                    }, 3000);
+                    
                 } catch (error) {
                     console.error("Error removing from wantlist:", error);
                     alert("Error removing from wantlist: " + error.message);
@@ -215,6 +235,14 @@ document.addEventListener("DOMContentLoaded", function() {
     });
     
     syncButton.addEventListener("click", syncWantlist);
+});
+
+// Auto-hide success messages after 3 seconds
+document.querySelectorAll(".success-message").forEach(message => {
+    setTimeout(() => {
+        message.style.opacity = "0";
+        setTimeout(() => message.remove(), 300);
+    }, 3000);
 });
 </script>';
 
@@ -267,6 +295,8 @@ $styles = '
     }
 
     .success-message {
+        opacity: 1;
+        transition: opacity 0.3s ease;
         max-width: 800px;
         margin: 1rem auto;
         padding: 1rem;
