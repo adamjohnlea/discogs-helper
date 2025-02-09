@@ -778,4 +778,125 @@ final class Database
         
         Logger::log("Reset import state for user {$userId}");
     }
+
+    public function getUniqueArtistCount(int $userId): int {
+        $stmt = $this->pdo->prepare('
+            SELECT COUNT(DISTINCT artist) 
+            FROM releases 
+            WHERE user_id = :user_id
+        ');
+        $stmt->execute(['user_id' => $userId]);
+        return (int)$stmt->fetchColumn();
+    }
+
+    public function getTopArtists(int $userId, int $limit = 5): array {
+        $stmt = $this->pdo->prepare('
+            SELECT artist, COUNT(*) as count 
+            FROM releases 
+            WHERE user_id = :user_id 
+            GROUP BY artist 
+            ORDER BY count DESC 
+            LIMIT :limit
+        ');
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getFormatDistribution(int $userId): array {
+        $stmt = $this->pdo->prepare('
+            SELECT format, COUNT(*) as count 
+            FROM releases 
+            WHERE user_id = :user_id 
+            GROUP BY format
+        ');
+        $stmt->execute(['user_id' => $userId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getYearRange(int $userId): array {
+        $stmt = $this->pdo->prepare('
+            SELECT 
+                MIN(year) as oldest,
+                MAX(year) as newest,
+                COUNT(*) as total_with_year
+            FROM releases 
+            WHERE user_id = :user_id 
+            AND year IS NOT NULL
+        ');
+        $stmt->execute(['user_id' => $userId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function getRecentActivity(int $userId, int $days = 30): int {
+        $stmt = $this->pdo->prepare('
+            SELECT COUNT(*) 
+            FROM releases 
+            WHERE user_id = :user_id 
+            AND date_added >= date("now", :days_ago)
+        ');
+        $stmt->execute([
+            'user_id' => $userId,
+            'days_ago' => '-' . $days . ' days'
+        ]);
+        return (int)$stmt->fetchColumn();
+    }
+
+    public function getMonthlyGrowth(int $userId, int $months = 12): array {
+        $stmt = $this->pdo->prepare('
+            WITH RECURSIVE months AS (
+                SELECT date("now", "start of month") as month
+                UNION ALL
+                SELECT date(month, "-1 month")
+                FROM months
+                WHERE month > date("now", "start of month", :months_ago)
+            )
+            SELECT 
+                strftime("%Y-%m", months.month) as month,
+                COUNT(releases.id) as count
+            FROM months
+            LEFT JOIN releases ON 
+                strftime("%Y-%m", releases.date_added) = strftime("%Y-%m", months.month)
+                AND releases.user_id = :user_id
+            GROUP BY strftime("%Y-%m", months.month)
+            ORDER BY month ASC
+        ');
+        
+        $stmt->execute([
+            'user_id' => $userId,
+            'months_ago' => '-' . ($months - 1) . ' months'
+        ]);
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getDailyAdditions(int $userId, int $days = 365): array {
+        $stmt = $this->pdo->prepare('
+            SELECT 
+                date(date_added) as date,
+                COUNT(*) as count
+            FROM releases 
+            WHERE user_id = :user_id 
+            AND date_added >= date("now", :days_ago)
+            GROUP BY date(date_added)
+            ORDER BY date_added ASC
+        ');
+        
+        $stmt->execute([
+            'user_id' => $userId,
+            'days_ago' => '-' . $days . ' days'
+        ]);
+        
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Convert to timestamp => count format
+        $data = [];
+        foreach ($results as $row) {
+            $timestamp = strtotime($row['date']) * 1000; // Convert to milliseconds for JavaScript
+            $data[$timestamp] = (int)$row['count'];
+        }
+        
+        return $data;
+    }
 }
