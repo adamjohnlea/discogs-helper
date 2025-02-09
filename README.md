@@ -150,6 +150,15 @@ chmod -R 755 logs</code></pre>
   <li>Duplicate detection and skipping</li>
   <li>Visual progress indication</li>
   <li>User-specific collection isolation</li>
+  <li>Robust error handling:
+    <ul>
+      <li>Automatic retry with exponential backoff</li>
+      <li>Graceful handling of server timeouts</li>
+      <li>Real-time status updates</li>
+      <li>Automatic recovery from temporary errors</li>
+      <li>Conservative batch processing for reliability</li>
+    </ul>
+  </li>
 </ul>
 
 <h2>Database</h2>
@@ -225,6 +234,14 @@ chmod -R 755 logs</code></pre>
 
 <h2>Recent Updates</h2>
 <ul>
+    <li>Enhanced collection import reliability:
+        <ul>
+            <li>Improved error handling with automatic retries</li>
+            <li>Better handling of server timeouts</li>
+            <li>More informative progress updates</li>
+            <li>Graceful recovery from temporary errors</li>
+        </ul>
+    </li>
     <li>Added OAuth authentication for full Discogs API access</li>
     <li>Implemented comprehensive wantlist management
         <ul>
