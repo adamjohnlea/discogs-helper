@@ -34,7 +34,7 @@ $auth = new Auth($db);
 
 // Create DiscogsService instance for routes that need it
 $discogs = null;
-if (in_array($action, ['search', 'import', 'view', 'preview', 'add', 'sync_wantlist', 'remove_wantlist', 'remove_collection'])) {
+if (in_array($action, ['search', 'import', 'view', 'preview', 'add', 'sync_wantlist', 'remove_wantlist', 'remove_collection', 'wantlist'])) {
     $discogs = createDiscogsService($auth, $db);
 }
 

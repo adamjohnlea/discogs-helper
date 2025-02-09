@@ -6,6 +6,13 @@
 use DiscogsHelper\Security\Csrf;
 use DiscogsHelper\Session;
 
+// Check if user has valid Discogs credentials
+if (!isset($discogs)) {
+    Session::setMessage('Please set up your Discogs username in your profile first.');
+    header('Location: ?action=profile_edit');
+    exit;
+}
+
 $userId = $auth->getCurrentUser()->id;
 $wantlist = $db->getWantlistItems($userId);
 

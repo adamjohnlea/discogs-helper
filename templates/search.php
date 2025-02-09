@@ -11,7 +11,7 @@ use DiscogsHelper\Session;
 
 // Check if user has valid Discogs credentials
 if (!isset($discogs)) {
-    Session::setMessage('Please set up your Discogs credentials in your profile to search Discogs.');
+    Session::setMessage('Please set up your Discogs username in your profile first.');
     header('Location: ?action=profile_edit');
     exit;
 }

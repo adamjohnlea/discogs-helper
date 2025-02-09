@@ -7,6 +7,7 @@
 use DiscogsHelper\Auth;
 use DiscogsHelper\Database;
 use DiscogsHelper\Security\Csrf;
+use DiscogsHelper\Session;
 
 $styles = '<style>
 .button-groups {
