@@ -6,6 +6,6 @@ namespace DiscogsHelper\Exceptions;
 
 use RuntimeException;
 
-final class RateLimitExceededException extends RuntimeException
+class RateLimitExceededException extends RuntimeException
 {
 }

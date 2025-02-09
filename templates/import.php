@@ -18,19 +18,25 @@ use GuzzleHttp\Exception\GuzzleException;
 
 // Check if user has valid Discogs credentials
 if (!isset($discogs)) {
-    Session::setMessage('Please set up your Discogs username in your profile first.');
+    Session::setMessage('Please set up your Discogs credentials in your profile first.');
     header('Location: ?action=profile_edit');
     exit;
 }
 
-// Change this section in import.php
-// Get the current user's Discogs username from user_profiles
-$currentUser = $auth->getCurrentUser();
-$profile = $db->getUserProfile($currentUser->id);
+$userId = $auth->getCurrentUser()->id;
+$profile = $db->getUserProfile($userId);
 
 if (!$profile || !$profile->discogsUsername) {
-    Session::setMessage('Please set up your Discogs username in your profile first.');
+    Session::setMessage('Please set your Discogs username in your profile first.');
     header('Location: ?action=profile_edit');
+    exit;
+}
+
+// Check for existing import
+$importState = $db->getImportState($userId);
+if ($importState && $importState['status'] === 'pending') {
+    // Resume existing import
+    header('Location: ?action=resume_import&id=' . $importState['id']);
     exit;
 }
 
@@ -67,173 +73,52 @@ if (isset($_SESSION['import_progress']['last_update'])) {
     }
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['username'])) {
+$content = '
+<div class="import-container">
+    <h1>Import Collection</h1>
+    <p>Import your Discogs collection into DiscogsHelper.</p>
+    
+    <form method="post" class="import-form">
+        <input type="hidden" name="csrf_token" value="' . htmlspecialchars(Csrf::generate()) . '">
+        <button type="submit" class="button">Start Import</button>
+    </form>
+</div>';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
-        $username = trim($_POST['username']);
+        Csrf::validateOrFail($_POST['csrf_token'] ?? null);
+        
+        // Get collection size first
+        $response = $discogs->client->get("/users/{$profile->discogsUsername}/collection/folders/0/releases", [
+            'query' => [
+                'page' => 1,
+                'per_page' => 50
+            ]
+        ]);
 
-        // Initialize import only if not already in progress
-        if (!isset($_SESSION['import_progress'])) {
-            try {
-                // First, get the total number of items
-                $response = $discogs->client->get("/users/$username/collection/folders/0/releases", [
-                    'query' => [
-                        'page' => 1,
-                        'per_page' => 50
-                    ]
-                ]);
-
-                $data = json_decode($response->getBody()->getContents(), true);
-
-                if (!isset($data['pagination'])) {
-                    throw new RuntimeException('Unable to fetch collection data');
-                }
-
-                $_SESSION['import_progress'] = [
-                    'username' => $username,
-                    'page' => 1,
-                    'total_pages' => $data['pagination']['pages'],
-                    'processed' => 0,
-                    'total' => $data['pagination']['items'],
-                    'processing' => false,
-                    'last_update' => time(),
-                    'current_action' => 'Starting import...',
-                    'items_per_batch' => 5
-                ];
-            } catch (GuzzleException $e) {
-                throw new RuntimeException('Failed to connect to Discogs: ' . $e->getMessage());
-            }
+        $data = json_decode($response->getBody()->getContents(), true);
+        if (!isset($data['pagination'])) {
+            throw new RuntimeException('Unable to fetch collection data');
         }
 
-        $progress = &$_SESSION['import_progress'];
+        // Create import state
+        $importStateId = $db->createImportState(
+            userId: $userId,
+            totalPages: $data['pagination']['pages'],
+            totalItems: $data['pagination']['items']
+        );
 
-        if (!$progress['processing']) {
-            $progress['processing'] = true;
-            $progress['last_update'] = time();
-
-            try {
-                // Fetch current page
-                $response = $discogs->client->get("/users/$username/collection/folders/0/releases", [
-                    'query' => [
-                        'page' => $progress['page'],
-                        'per_page' => 50
-                    ]
-                ]);
-
-                $data = json_decode($response->getBody()->getContents(), true);
-
-                // Process only a small batch of items
-                $batch_start = ($progress['processed'] % 50);
-                $batch_end = min($batch_start + $progress['items_per_batch'], count($data['releases']));
-
-                for ($i = $batch_start; $i < $batch_end; $i++) {
-                    $item = $data['releases'][$i];
-
-                    try {
-                        $currentUserId = $auth->getCurrentUser()->id;
-
-                        // Check if release already exists
-                        if ($db->getDiscogsReleaseId($currentUserId, (int)$item['id'])) {
-                            Logger::log("Skipping existing release {$item['id']}");
-                            $progress['processed']++;
-                            $progress['last_update'] = time();
-                            $_SESSION['import_progress'] = $progress;
-                            continue;
-                        }
-
-                        $progress['current_action'] = "Processing release {$item['id']}...";
-                        $_SESSION['import_progress'] = $progress;
-
-                        $release = $discogs->getRelease($item['id']);
-
-                        $formatDetails = array_map(function($format) {
-                            return $format['name'] . (!empty($format['descriptions'])
-                                    ? ' (' . implode(', ', $format['descriptions']) . ')'
-                                    : '');
-                        }, $release['formats']);
-
-                        $coverPath = null;
-                        if (!empty($release['images'][0]['uri'])) {
-                            $progress['current_action'] = "Downloading cover image...";
-                            $_SESSION['import_progress'] = $progress;
-                            try {
-                                $coverPath = $discogs->downloadCover($release['images'][0]['uri']);
-                            } catch (Exception $e) {
-                                Logger::error("Error downloading cover: " . $e->getMessage());
-                            }
-                        }
-
-                        $progress['current_action'] = "Saving to database...";
-                        $_SESSION['import_progress'] = $progress;
-
-                        $db->saveRelease(
-                            userId: $currentUserId,
-                            discogsId: (int)$release['id'],
-                            title: $release['title'],
-                            artist: implode(', ', array_column($release['artists'], 'name')),
-                            year: isset($release['year']) ? (int)$release['year'] : null,
-                            format: $release['formats'][0]['name'],
-                            formatDetails: implode(', ', $formatDetails),
-                            coverPath: $coverPath,
-                            notes: $release['notes'] ?? null,
-                            tracklist: json_encode($release['tracklist']),
-                            identifiers: json_encode($release['identifiers'] ?? []),
-                            dateAdded: $item['date_added']
-                        );
-
-                        $progress['processed']++;
-                        $progress['last_update'] = time();
-                        $_SESSION['import_progress'] = $progress;
-
-                    } catch (Exception $e) {
-                        Logger::error("Error processing release {$item['id']}: " . $e->getMessage());
-                        continue;
-                    }
-                }
-
-                // Check if we need to move to next page
-                if ($batch_end >= count($data['releases'])) {
-                    if ($progress['processed'] >= $progress['total']) {
-                        // Import complete
-                        $progress['processing'] = false;
-                        $progress['current_action'] = "Import completed successfully!";
-                        $_SESSION['import_progress'] = $progress;
-                        header('Location: ?action=import&completed=1');
-                        exit;
-                    } else {
-                        $progress['page']++;
-                    }
-                }
-
-                $progress['processing'] = false;
-                $_SESSION['import_progress'] = $progress;
-
-                // Redirect to continue processing
-                header('Location: ?action=import');
-                exit;
-
-            } catch (GuzzleException $e) {
-                $error = "Failed to fetch data from Discogs: " . $e->getMessage();
-                $progress['processing'] = false;
-                $progress['current_action'] = "Error: " . $error;
-                $_SESSION['import_progress'] = $progress;
-            }
-        }
+        // Redirect to process page
+        header('Location: ?action=process_import&id=' . $importStateId);
+        exit;
 
     } catch (Exception $e) {
-        $error = $e->getMessage();
-        if (isset($progress)) {
-            $progress['processing'] = false;
-            $progress['current_action'] = "Error: " . $error;
-            $_SESSION['import_progress'] = $progress;
-        }
+        Logger::error('Import initialization failed: ' . $e->getMessage());
+        Session::setMessage('Failed to start import: ' . $e->getMessage());
     }
 }
 
 $progress = $_SESSION['import_progress'] ?? null;
-
-$content = '
-<h1>Import Discogs Collection</h1>
-';
 
 if (isset($error)) {
     $content .= '
@@ -278,17 +163,6 @@ if ($progress) {
             </div>
             ') . '
         ' : '') . '
-    </article>';
-} else {
-    $content .= '
-    <article>
-        <p>Ready to import your Discogs collection for username: <strong>' . htmlspecialchars($discogsUsername) . '</strong></p>
-        <p>This process will import all releases from your Discogs collection. You can pause and resume the import at any time.</p>
-        <form method="post" action="?action=import">
-            ' . Csrf::getFormField() . '
-            <input type="hidden" name="username" value="' . htmlspecialchars($discogsUsername) . '">
-            <button type="submit">Import Collection</button>
-        </form>
     </article>';
 }
 

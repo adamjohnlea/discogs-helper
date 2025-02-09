@@ -34,7 +34,12 @@ $auth = new Auth($db);
 
 // Create DiscogsService instance for routes that need it
 $discogs = null;
-if (in_array($action, ['search', 'import', 'view', 'preview', 'add', 'sync_wantlist', 'remove_wantlist', 'remove_collection', 'wantlist'])) {
+if (in_array($action, [
+    'search', 'import', 'view', 'preview', 'add', 
+    'sync_wantlist', 'remove_wantlist', 'remove_collection', 
+    'wantlist', 'process_import', 'resume_import', 
+    'check_import_progress', 'process_import_batch'
+])) {
     $discogs = createDiscogsService($auth, $db);
 }
 
@@ -86,7 +91,13 @@ if ($action === 'logout') {
 }
 
 // Protected routes check
-$protected_routes = ['search', 'list', 'import', 'view', 'preview', 'add', 'process-edit', 'process-edit-details', 'wantlist', 'sync_wantlist', 'view_wantlist', 'process-wantlist-notes', 'remove_wantlist', 'remove_collection'];
+$protected_routes = [
+    'search', 'list', 'import', 'view', 'preview', 'add', 
+    'process-edit', 'process-edit-details', 'wantlist', 
+    'sync_wantlist', 'view_wantlist', 'process-wantlist-notes', 
+    'remove_wantlist', 'remove_collection',
+    'process_import', 'resume_import', 'check_import_progress'
+];
 if (in_array($action, $protected_routes) && !$auth->isLoggedIn()) {
     // Store the intended page for post-login redirect
     $_SESSION['intended_page'] = $_SERVER['REQUEST_URI'];
@@ -282,5 +293,9 @@ match ($action) {
     'process-wantlist-notes' => require __DIR__ . '/../templates/process-wantlist-notes.php',
     'discogs_auth' => require __DIR__ . '/../templates/discogs_auth.php',
     'remove_collection' => require __DIR__ . '/../templates/remove_collection.php',
+    'process_import' => require __DIR__ . '/../templates/process_import.php',
+    'check_import_progress' => require __DIR__ . '/../templates/check_import_progress.php',
+    'resume_import' => require __DIR__ . '/../templates/resume_import.php',
+    'process_import_batch' => require __DIR__ . '/../templates/process_import_batch.php',
     default => require __DIR__ . '/../templates/index.php',
 };

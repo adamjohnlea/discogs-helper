@@ -9,6 +9,7 @@ use GuzzleHttp\Client;
 use RuntimeException;
 use GuzzleHttp\Exception\ClientException;
 use Exception;
+use GuzzleHttp\Exception\RequestException;
 
 final class DiscogsService
 {
@@ -156,25 +157,74 @@ final class DiscogsService
     {
         try {
             $response = $this->client->get($url);
-
+            
             // Get original filename from URL
             $originalFilename = basename(parse_url($url, PHP_URL_PATH));
-
-            // Generate unique filename using timestamp and random string
+            
+            // Generate unique filename
             $uniqueId = time() . '_' . bin2hex(random_bytes(4));
             $extension = pathinfo($originalFilename, PATHINFO_EXTENSION) ?: 'jpg';
             $filename = $uniqueId . '.' . $extension;
-
+            
+            $tempPath = sys_get_temp_dir() . '/' . $filename;
             $savePath = __DIR__ . '/../public/images/covers/' . $filename;
-
-            file_put_contents($savePath, $response->getBody()->getContents());
-
+            
+            // Save original to temp file
+            file_put_contents($tempPath, $response->getBody()->getContents());
+            
+            // Optimize image
+            $this->optimizeImage($tempPath, $savePath);
+            
+            // Clean up temp file
+            unlink($tempPath);
+            
             // Return the relative path from public directory
             return 'images/covers/' . $filename;
         } catch (Exception $e) {
-            Logger::log("Failed to download cover: " . $e->getMessage());
+            Logger::error("Failed to download cover: " . $e->getMessage());
             return null;
         }
+    }
+
+    private function optimizeImage(string $sourcePath, string $targetPath): void
+    {
+        // Create image from file
+        $image = imagecreatefromstring(file_get_contents($sourcePath));
+        
+        if (!$image) {
+            throw new RuntimeException('Failed to create image from downloaded file');
+        }
+        
+        // Get original dimensions
+        $width = imagesx($image);
+        $height = imagesy($image);
+        
+        // Calculate new dimensions (max 800px width)
+        $maxWidth = 800;
+        if ($width > $maxWidth) {
+            $ratio = $maxWidth / $width;
+            $newWidth = $maxWidth;
+            $newHeight = $height * $ratio;
+        } else {
+            $newWidth = $width;
+            $newHeight = $height;
+        }
+        
+        // Create new image with new dimensions
+        $newImage = imagecreatetruecolor($newWidth, $newHeight);
+        imagecopyresampled(
+            $newImage, $image,
+            0, 0, 0, 0,
+            $newWidth, $newHeight,
+            $width, $height
+        );
+        
+        // Save with quality 80 (good balance between quality and size)
+        imagejpeg($newImage, $targetPath, 80);
+        
+        // Clean up
+        imagedestroy($image);
+        imagedestroy($newImage);
     }
 
     public function getUserCollection(string $username): array
@@ -221,13 +271,25 @@ final class DiscogsService
         return $collection;
     }
 
-    private function handleRateLimit(array $headers): void
+    public function handleRateLimit(array $headers): void
     {
-        if (isset($headers['X-Discogs-Ratelimit-Remaining'][0])) {
-            $remaining = (int)$headers['X-Discogs-Ratelimit-Remaining'][0];
-            if ($remaining < 5) {  // If we're running low on requests
-                sleep(60);  // Wait for a minute to reset
+        // Get rate limit info from headers
+        $remaining = (int)($headers['X-Discogs-Ratelimit-Remaining'][0] ?? 60);
+        $resetTime = (int)($headers['X-Discogs-Ratelimit-Reset'][0] ?? 0);
+        
+        Logger::log("Discogs API rate limit: {$remaining} requests remaining");
+        
+        if ($remaining < 5) {
+            $waitTime = $resetTime - time();
+            Logger::log("Rate limit low, waiting {$waitTime} seconds");
+            
+            if ($waitTime > 0) {
+                sleep($waitTime);
             }
+        } else {
+            // Adaptive delay based on remaining requests
+            $delay = max(200000, 1000000 * (5 / $remaining));
+            usleep($delay);
         }
     }
 

@@ -448,27 +448,20 @@ final class Database
         ]);
     }
 
-    public function getReleaseByDiscogsId(int $userId, int $discogsId): ?Release
+    public function getReleaseByDiscogsId(int $userId, int $discogsId): ?array
     {
         $stmt = $this->pdo->prepare('
-            SELECT * 
-            FROM releases 
+            SELECT * FROM releases 
             WHERE user_id = :user_id 
             AND discogs_id = :discogs_id
         ');
-
+        
         $stmt->execute([
             'user_id' => $userId,
             'discogs_id' => $discogsId
         ]);
-
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$row) {
-            return null;
-        }
-
-        return $this->createReleaseFromRow($row);
+        
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
     private function createReleaseFromRow(array $row): Release
@@ -602,5 +595,187 @@ final class Database
             'user_id' => $userId,
             'notes' => $notes
         ]);
+    }
+
+    public function createImportState(
+        int $userId,
+        int $totalPages,
+        int $totalItems
+    ): int {
+        $stmt = $this->pdo->prepare('
+            INSERT INTO import_states 
+            (user_id, status, current_page, total_pages, total_items, last_update)
+            VALUES (:user_id, :status, 1, :total_pages, :total_items, :last_update)
+        ');
+
+        $stmt->execute([
+            'user_id' => $userId,
+            'status' => 'pending',
+            'total_pages' => $totalPages,
+            'total_items' => $totalItems,
+            'last_update' => date('Y-m-d H:i:s')
+        ]);
+
+        return (int)$this->pdo->lastInsertId();
+    }
+
+    public function getImportState(int $userId): ?array
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT * FROM import_states 
+            WHERE user_id = :user_id 
+            ORDER BY last_update DESC 
+            LIMIT 1
+        ');
+        
+        $stmt->execute(['user_id' => $userId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
+    public function updateImportProgress(
+        int $userId,
+        int $currentPage,
+        int $processedItems,
+        ?int $lastProcessedId = null,
+        ?array $coverStats = null
+    ): void {
+        Logger::log("Updating import progress: " . json_encode([
+            'currentPage' => $currentPage,
+            'processedItems' => $processedItems,
+            'coverStats' => $coverStats
+        ]));
+
+        // First get current state to ensure we're updating correctly
+        $currentState = $this->getImportState($userId);
+        if (!$currentState) {
+            Logger::error("No import state found to update");
+            return;
+        }
+
+        // Calculate total processed items
+        $totalProcessed = $processedItems;
+
+        $stmt = $this->pdo->prepare('
+            UPDATE import_states 
+            SET current_page = :current_page,
+                processed_items = :processed_items,
+                last_processed_id = :last_processed_id,
+                cover_stats = :cover_stats,
+                last_update = :last_update
+            WHERE user_id = :user_id
+            AND status = :status
+        ');
+
+        $stmt->execute([
+            'user_id' => $userId,
+            'current_page' => $currentPage,
+            'processed_items' => $totalProcessed,
+            'last_processed_id' => $lastProcessedId,
+            'cover_stats' => $coverStats ? json_encode($coverStats) : null,
+            'status' => 'pending',
+            'last_update' => date('Y-m-d H:i:s')
+        ]);
+    }
+
+    public function completeImport(int $userId): void
+    {
+        $stmt = $this->pdo->prepare('
+            UPDATE import_states 
+            SET status = :status,
+                last_update = :last_update
+            WHERE user_id = :user_id
+            AND status = :old_status
+        ');
+
+        $stmt->execute([
+            'user_id' => $userId,
+            'status' => 'completed',
+            'old_status' => 'pending',
+            'last_update' => date('Y-m-d H:i:s')
+        ]);
+
+        // Clean up any orphaned cover files
+        $this->cleanupFailedCovers();
+    }
+
+    public function addFailedItem(int $userId, int $discogsId, string $error): void
+    {
+        $importState = $this->getImportState($userId);
+        if (!$importState) {
+            return;
+        }
+
+        $failedItems = json_decode($importState['failed_items'] ?? '[]', true);
+        $failedItems[] = [
+            'id' => $discogsId,
+            'error' => $error,
+            'timestamp' => time()
+        ];
+
+        $stmt = $this->pdo->prepare('
+            UPDATE import_states 
+            SET failed_items = :failed_items
+            WHERE user_id = :user_id
+            AND status = :status
+        ');
+
+        $stmt->execute([
+            'user_id' => $userId,
+            'failed_items' => json_encode($failedItems),
+            'status' => 'pending'
+        ]);
+    }
+
+    public function getFailedItems(int $userId): array
+    {
+        $importState = $this->getImportState($userId);
+        if (!$importState) {
+            return [];
+        }
+
+        return json_decode($importState['failed_items'] ?? '[]', true);
+    }
+
+    public function cleanupFailedCovers(): void
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT cover_path 
+            FROM releases 
+            WHERE cover_path IS NOT NULL
+        ');
+        $stmt->execute();
+        $validPaths = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        $coverDir = __DIR__ . '/../public/images/covers/';
+        $files = glob($coverDir . '*');
+
+        foreach ($files as $file) {
+            $relativePath = 'images/covers/' . basename($file);
+            if (!in_array($relativePath, $validPaths)) {
+                unlink($file);
+                Logger::log("Cleaned up unused cover file: " . basename($file));
+            }
+        }
+    }
+
+    public function deleteImportState(int $userId): void
+    {
+        $stmt = $this->pdo->prepare('
+            DELETE FROM import_states 
+            WHERE user_id = :user_id
+        ');
+        
+        $stmt->execute(['user_id' => $userId]);
+    }
+
+    public function resetImportState(int $userId): void
+    {
+        // First delete any existing import states
+        $this->deleteImportState($userId);
+        
+        // Also clean up any orphaned covers
+        $this->cleanupFailedCovers();
+        
+        Logger::log("Reset import state for user {$userId}");
     }
 }
