@@ -140,7 +140,7 @@ if (!$auth->isLoggedIn()) {
         foreach ($topArtists as $artist) {
             $content .= '
                 <div class="artist-item">
-                    <span class="artist-name">' . htmlspecialchars($artist['artist']) . '</span>
+                    <span class="artist-name"><a href="?action=list&q=' . urlencode($artist['artist']) . '">' . htmlspecialchars($artist['artist']) . '</a></span>
                     <span class="artist-count">' . number_format($artist['count']) . ' records</span>
                 </div>';
         }
@@ -267,6 +267,17 @@ $styles = '
 
     .artist-name {
         font-weight: 500;
+    }
+
+    .artist-name a {
+        color: #1a73e8;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .artist-name a:hover {
+        color: #1557b0;
+        text-decoration: underline;
     }
 
     .artist-count {
