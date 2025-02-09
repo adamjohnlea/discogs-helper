@@ -46,6 +46,7 @@
             <li>Notes management</li>
             <li>Cover art selection</li>
             <li>One-click adding from wantlist to collection</li>
+            <li>Dashboard with collection statistics and growth visualization</li>
         </ul>
     </li>
     <li>Wantlist Management
@@ -234,6 +235,15 @@ chmod -R 755 logs</code></pre>
 
 <h2>Recent Updates</h2>
 <ul>
+    <li>Enhanced dashboard visualization:
+        <ul>
+            <li>Added streamlined collection growth chart</li>
+            <li>Improved collection statistics display</li>
+            <li>Added format distribution overview</li>
+            <li>Added top artists section</li>
+            <li>Enhanced mobile responsiveness</li>
+        </ul>
+    </li>
     <li>Enhanced collection import reliability:
         <ul>
             <li>Improved error handling with automatic retries</li>
