@@ -15,7 +15,7 @@ Logger::log("Starting import process...");
 // Validate Discogs service
 if (!isset($discogs) || !$discogs instanceof DiscogsService) {
     Logger::error("Discogs service not available");
-    Session::setMessage('Error: Discogs service not available. Please check your credentials.');
+    Session::setMessage('Error: Discogs service not available, please check your credentials.');
     header('Location: ?action=profile_edit');
     exit;
 }
@@ -93,23 +93,12 @@ $content = '
     <div class="progress-section">
         <h2>Release Progress</h2>
         <div class="progress-info">
-            <p>Processing page <span id="current-page">' . $importState['current_page'] . '</span> 
-               of <span id="total-pages">' . $importState['total_pages'] . '</span></p>
             <p>Imported <span id="processed-count">' . $importState['processed_items'] . '</span> 
                of <span id="total-count">' . $importState['total_items'] . '</span> releases</p>
         </div>
         <progress id="progress-bar" 
                   value="' . $importState['processed_items'] . '" 
                   max="' . $importState['total_items'] . '"></progress>
-    </div>
-    
-    <div class="cover-progress-section">
-        <h2>Cover Images</h2>
-        <div class="progress-info">
-            <p>Downloaded <span id="cover-success">0</span> of <span id="cover-total">0</span> covers</p>
-            <p class="error-text"><span id="cover-failed">0</span> failed downloads</p>
-        </div>
-        <progress id="cover-progress-bar" value="0" max="100"></progress>
     </div>
     
     <div id="error-section" class="error-section" style="display: none;">
@@ -156,21 +145,8 @@ function updateProgress() {
             document.getElementById("status-message").className = "";
             
             // Update release progress
-            document.getElementById("current-page").textContent = data.current_page;
             document.getElementById("processed-count").textContent = data.processed_items;
             document.getElementById("progress-bar").value = data.processed_items;
-            
-            // Update cover progress
-            if (data.cover_stats) {
-                document.getElementById("cover-total").textContent = data.cover_stats.total;
-                document.getElementById("cover-success").textContent = data.cover_stats.success;
-                document.getElementById("cover-failed").textContent = data.cover_stats.failed;
-                
-                const coverProgress = data.cover_stats.total > 0 
-                    ? (data.cover_stats.success / data.cover_stats.total) * 100 
-                    : 0;
-                document.getElementById("cover-progress-bar").value = coverProgress;
-            }
             
             // Update failed items
             const errorSection = document.getElementById("error-section");
@@ -280,7 +256,7 @@ processBatch();
     padding: 1rem;
 }
 
-.progress-section, .cover-progress-section {
+.progress-section {
     margin: 2rem 0;
 }
 
