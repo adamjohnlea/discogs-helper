@@ -37,3 +37,7 @@ Thumbs.db
 
 # Cursor
 .cursorrules
+
+# Static collection pages
+public/collections/*
+!public/collections/.gitkeep
