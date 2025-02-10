@@ -25,12 +25,30 @@ final class Release
 
     public function getCoverUrl(): string
     {
-        return '/images/covers/' . basename($this->coverPath);
+        return '/' . $this->coverPath;
     }
 
+    /**
+     * Get the tracklist as an array of tracks
+     */
     public function getTracklistArray(): array
     {
-        return json_decode($this->tracklist, true);
+        if (empty($this->tracklist)) {
+            return [];
+        }
+
+        $tracklist = json_decode($this->tracklist, true);
+        if (!is_array($tracklist)) {
+            return [];
+        }
+
+        return array_map(function($track) {
+            return [
+                'position' => $track['position'] ?? null,
+                'title' => $track['title'] ?? '',
+                'duration' => $track['duration'] ?? null
+            ];
+        }, $tracklist);
     }
 
     public function getIdentifiersArray(): array

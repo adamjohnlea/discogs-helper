@@ -5,7 +5,11 @@ declare(strict_types=1);
 namespace DiscogsHelper;
 
 use PDO;
+use Exception;
 use RuntimeException;
+use PDOException;
+use DiscogsHelper\Release;
+use DiscogsHelper\UserProfile;
 use DiscogsHelper\Exceptions\DuplicateReleaseException;
 use DiscogsHelper\Exceptions\DuplicateDiscogsUsernameException;
 
@@ -898,5 +902,111 @@ final class Database
         }
         
         return $data;
+    }
+
+    /**
+     * Handle collection changes and trigger static generation
+     */
+    private function handleCollectionChange(int $userId): void
+    {
+        try {
+            $generator = new StaticCollectionGenerator($this, new Auth($this));
+            $generator->generateForUser($userId);
+        } catch (Exception $e) {
+            Logger::error('Failed to generate static pages: ' . $e->getMessage());
+        }
+    }
+
+    public function addRelease(Release $release): void
+    {
+        $this->pdo->beginTransaction();
+
+        try {
+            $stmt = $this->pdo->prepare('
+                INSERT INTO releases (
+                    user_id, discogs_id, title, artist, year, 
+                    format, format_details, cover_path, date_added
+                ) VALUES (
+                    :user_id, :discogs_id, :title, :artist, :year,
+                    :format, :format_details, :cover_path, :date_added
+                )
+            ');
+
+            $stmt->execute([
+                'user_id' => $release->id,
+                'discogs_id' => $release->discogsId,
+                'title' => $release->title,
+                'artist' => $release->artist,
+                'year' => $release->year,
+                'format' => $release->format,
+                'format_details' => $release->formatDetails,
+                'cover_path' => $release->coverPath,
+                'date_added' => $release->dateAdded
+            ]);
+
+            $this->pdo->commit();
+            
+            // Trigger static page generation
+            $this->handleCollectionChange($release->id);
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
+
+    public function removeRelease(int $userId, int $discogsId): void
+    {
+        $this->pdo->beginTransaction();
+
+        try {
+            $stmt = $this->pdo->prepare('
+                DELETE FROM releases 
+                WHERE user_id = :user_id AND discogs_id = :discogs_id
+            ');
+
+            $stmt->execute([
+                'user_id' => $userId,
+                'discogs_id' => $discogsId
+            ]);
+
+            $this->pdo->commit();
+            
+            // Trigger static page generation
+            $this->handleCollectionChange($userId);
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Get a user profile by their Discogs username
+     */
+    public function getUserProfileByDiscogsUsername(string $username): ?UserProfile
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT * FROM user_profiles 
+            WHERE discogs_username = :username
+        ');
+        
+        $stmt->execute(['username' => $username]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$row) {
+            return null;
+        }
+        
+        return new UserProfile(
+            id: (int)$row['id'],
+            userId: (int)$row['user_id'],
+            location: $row['location'],
+            discogsUsername: $row['discogs_username'],
+            discogsConsumerKey: $row['discogs_consumer_key'],
+            discogsConsumerSecret: $row['discogs_consumer_secret'],
+            discogsOAuthToken: $row['discogs_oauth_token'],
+            discogsOAuthTokenSecret: $row['discogs_oauth_token_secret'],
+            createdAt: $row['created_at'],
+            updatedAt: $row['updated_at']
+        );
     }
 }

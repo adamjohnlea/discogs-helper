@@ -11,6 +11,7 @@ use DiscogsHelper\DatabaseSetup;
 use DiscogsHelper\DiscogsService;
 use DiscogsHelper\Auth;
 use DiscogsHelper\UserProfile;
+use DiscogsHelper\StaticCollectionGenerator;
 use DiscogsHelper\Exceptions\DiscogsCredentialsException;
 use DiscogsHelper\Exceptions\DuplicateDiscogsUsernameException;
 use DiscogsHelper\Security\Csrf;
@@ -20,6 +21,47 @@ use DiscogsHelper\Controllers\ReleaseController;
 Logger::initialize(__DIR__ . '/..');
 Logger::log('Application startup');
 Session::initialize();
+
+// Check if this is a static collection request
+$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+if (preg_match('#^/collections/([^/]+)(?:/releases/(\d+))?$#', $path, $matches)) {
+    $username = $matches[1];
+    $releaseId = $matches[2] ?? null;
+    
+    // Determine the static file path
+    $staticPath = $releaseId 
+        ? __DIR__ . "/collections/$username/releases/$releaseId.html"
+        : __DIR__ . "/collections/$username/index.html";
+    
+    if (file_exists($staticPath)) {
+        // Serve the static file
+        readfile($staticPath);
+        exit;
+    }
+    
+    // If file doesn't exist, try to generate it
+    $config = require __DIR__ . '/../config/config.php';
+    $db = new Database($config['database']['path']);
+    $auth = new Auth($db);
+    
+    // Find user by username
+    $user = $db->findUserByUsername($username);
+    if ($user) {
+        $generator = new StaticCollectionGenerator($db, $auth);
+        $generator->generateForUser($user['id']);
+        
+        // Try serving the file again
+        if (file_exists($staticPath)) {
+            readfile($staticPath);
+            exit;
+        }
+    }
+    
+    // If we still can't serve the file, show 404
+    http_response_code(404);
+    echo 'Collection not found';
+    exit;
+}
 
 $action = $_GET['action'] ?? '';
 $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
@@ -276,6 +318,21 @@ match ($action) {
     'add' => (function() use ($auth, $db, $discogs) {
         $releaseController = new ReleaseController($auth, $db, $discogs);
         return $releaseController->processAdd();
+    })(),
+    'generate_static' => (function() use ($auth, $db) {
+        requireAuth();
+        
+        // Validate CSRF token
+        $data = json_decode(file_get_contents('php://input'), true);
+        Csrf::validateOrFail($data['csrf_token'] ?? null);
+        
+        // Generate static pages
+        $generator = new StaticCollectionGenerator($db, $auth);
+        $generator->generateForUser($auth->getCurrentUser()->id);
+        
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true]);
+        exit;
     })(),
     'import' => require __DIR__ . '/../templates/import.php',
     'list' => require __DIR__ . '/../templates/list.php',

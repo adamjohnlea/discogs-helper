@@ -111,6 +111,11 @@ $content .= '
             <option value="DESC"' . (isset($_GET['direction']) && $_GET['direction'] === 'DESC' ? ' selected' : '') . '>Descending</option>
         </select>
     </div>
+
+    <div class="view-group">
+        <a href="/collections/' . htmlspecialchars($auth->getCurrentUser()->username) . '" class="button" target="_blank">View Static Collection</a>
+        <button type="button" id="generateStatic" class="button">Regenerate Static Pages</button>
+    </div>
 </div>
 
 <div class="album-grid">';
@@ -264,6 +269,31 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
             }
         });
+    });
+
+    // Add JavaScript for static page generation
+    document.getElementById("generateStatic").addEventListener("click", async function() {
+        try {
+            const response = await fetch("?action=generate_static", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify({
+                    csrf_token: "' . Csrf::generate() . '"
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to generate static pages");
+            }
+
+            alert("Static pages generated successfully!");
+        } catch (error) {
+            console.error("Error generating static pages:", error);
+            alert("Error generating static pages: " + error.message);
+        }
     });
 });
 </script>';

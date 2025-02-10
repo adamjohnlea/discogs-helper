@@ -1,0 +1,1916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>adamjlea's Collection on DiscogsHelper</title>
+    <style>
+        :root {
+            --primary-color: #1a73e8;
+            --text-color: #333;
+            --background-color: #fff;
+            --card-background: #f8f9fa;
+            --border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .collection-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-background);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .stat-label {
+            color: #666;
+            margin: 0;
+        }
+
+        .top-artists {
+            margin-top: 2rem;
+        }
+
+        .artist-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .artist-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.03);
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+        }
+
+        .latest-release {
+            text-align: center;
+        }
+
+        .latest-release img {
+            max-width: 200px;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Add grid styles */
+        .releases-section {
+            margin-top: 3rem;
+        }
+
+        .releases-section h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .releases-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 2rem;
+            padding: 1rem;
+        }
+
+        .release-card {
+            background: var(--card-background);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .release-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .release-card .release-cover {
+            aspect-ratio: 1;
+            overflow: hidden;
+        }
+
+        .release-card .release-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .release-card .release-info {
+            padding: 1rem;
+        }
+
+        .release-card .release-title {
+            font-size: 1rem;
+            margin: 0 0 0.5rem 0;
+            font-weight: 600;
+        }
+
+        .release-card .release-artist {
+            font-size: 0.9rem;
+            color: #666;
+            margin: 0 0 0.25rem 0;
+        }
+
+        .release-card .release-year {
+            font-size: 0.8rem;
+            color: #888;
+            margin: 0;
+        }
+
+        @media (max-width: 768px) {
+            .releases-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 1rem;
+            }
+        }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .nav-tab {
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            text-decoration: none;
+            color: #666;
+            background: var(--card-background);
+            transition: all 0.2s ease;
+        }
+
+        .nav-tab:hover {
+            background: #e9ecef;
+        }
+
+        .nav-tab.active {
+            background: var(--primary-color);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="collection-header">
+            <h1>adamjlea's Collection</h1>
+            <p class="subtitle">Powered by DiscogsHelper</p>
+        </header>
+
+        <div class="nav-tabs">
+            <a href="#stats" class="nav-tab active" data-view="stats">Collection Stats</a>
+            <a href="#collection" class="nav-tab" data-view="collection">View Collection</a>
+        </div>
+
+        <div id="stats-view">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <p class="stat-number">134</p>
+                    <p class="stat-label">Records</p>
+                </div>
+
+                <div class="stat-card">
+                    <p class="stat-number">93</p>
+                    <p class="stat-label">Artists</p>
+                </div>
+
+                                <div class="stat-card">
+                    <p class="stat-number">0 - 2024</p>
+                    <p class="stat-label">Year Range</p>
+                </div>
+                            </div>
+
+                        <div class="stat-card top-artists">
+                <h2>Top Artists</h2>
+                <ul class="artist-list">
+                                        <li class="artist-item">
+                        <span class="artist-name">Various</span>
+                        <span class="artist-count">13 records</span>
+                    </li>
+                                        <li class="artist-item">
+                        <span class="artist-name">Devo</span>
+                        <span class="artist-count">6 records</span>
+                    </li>
+                                        <li class="artist-item">
+                        <span class="artist-name">Slothrust</span>
+                        <span class="artist-count">4 records</span>
+                    </li>
+                                        <li class="artist-item">
+                        <span class="artist-name">R.E.M.</span>
+                        <span class="artist-count">4 records</span>
+                    </li>
+                                        <li class="artist-item">
+                        <span class="artist-name">Metallica</span>
+                        <span class="artist-count">4 records</span>
+                    </li>
+                                    </ul>
+            </div>
+            
+                        <div class="stat-card latest-release">
+                <h2>Latest Addition</h2>
+                                <img src="/images/covers/1739135588_fa400b34.jpeg" 
+                     alt="Cover of Oh, No! It&#039;s Devo" 
+                     loading="lazy">
+                                <h3>Oh, No! It&#039;s Devo</h3>
+                <p>Devo</p>
+                <p class="stat-label">Added January 30, 2025</p>
+            </div>
+                    </div>
+
+                <div id="collection-view" style="display: none;">
+            <div class="releases-section">
+                <h2>Collection</h2>
+                
+                <div class="releases-grid">
+                                        <a href="/collections/adamjlea/releases/929.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135588_fa400b34.jpeg" 
+                                 alt="Cover of Oh, No! It&#039;s Devo"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Oh, No! It&#039;s Devo</h3>
+                            <p class="release-artist">Devo</p>
+                                                        <p class="release-year">2022</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/926.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135585_2ef144f9.jpeg" 
+                                 alt="Cover of Strange Angels"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Strange Angels</h3>
+                            <p class="release-artist">Laurie Anderson</p>
+                                                        <p class="release-year">1989</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/818.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135378_d96707f2.jpeg" 
+                                 alt="Cover of Surfin&#039; Safari"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Surfin&#039; Safari</h3>
+                            <p class="release-artist">The Beach Boys</p>
+                                                        <p class="release-year">1962</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/857.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135473_206b0e7b.jpeg" 
+                                 alt="Cover of Beauty And The Beat"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Beauty And The Beat</h3>
+                            <p class="release-artist">Go-Go&#039;s</p>
+                                                        <p class="release-year">1981</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/846.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135463_c22c11c5.jpeg" 
+                                 alt="Cover of Recombo DNA"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Recombo DNA</h3>
+                            <p class="release-artist">Devo</p>
+                                                        <p class="release-year">2024</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/828.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135387_aad295b8.jpeg" 
+                                 alt="Cover of Darkness On The Edge Of Town"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Darkness On The Edge Of Town</h3>
+                            <p class="release-artist">Bruce Springsteen</p>
+                                                        <p class="release-year">1978</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/863.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135477_96a5b68d.jpeg" 
+                                 alt="Cover of Live &quot;Under A Blood Red Sky&quot;"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Live &quot;Under A Blood Red Sky&quot;</h3>
+                            <p class="release-artist">U2</p>
+                                                        <p class="release-year">1983</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/803.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135364_c41caad8.jpeg" 
+                                 alt="Cover of Icicle Works"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Icicle Works</h3>
+                            <p class="release-artist">The Icicle Works</p>
+                                                        <p class="release-year">1984</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/841.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135398_096e095f.jpeg" 
+                                 alt="Cover of Hi Infidelity"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Hi Infidelity</h3>
+                            <p class="release-artist">REO Speedwagon</p>
+                                                        <p class="release-year">1980</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/836.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135394_11247ebf.jpeg" 
+                                 alt="Cover of All The Kids Are Super Bummed Out"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">All The Kids Are Super Bummed Out</h3>
+                            <p class="release-artist">Luke Haines, Peter Buck</p>
+                                                        <p class="release-year">2022</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/873.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135485_ff84b124.jpeg" 
+                                 alt="Cover of Arthur Buck"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Arthur Buck</h3>
+                            <p class="release-artist">Arthur Buck (2)</p>
+                                                        <p class="release-year">2018</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/867.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135481_8265a5fe.jpeg" 
+                                 alt="Cover of Seven Inches Of Satanic Panic"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Seven Inches Of Satanic Panic</h3>
+                            <p class="release-artist">Ghost (32)</p>
+                                                        <p class="release-year">2023</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/808.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135368_1998219b.jpeg" 
+                                 alt="Cover of One Of A Kind"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">One Of A Kind</h3>
+                            <p class="release-artist">The Heavy Heavy</p>
+                                                        <p class="release-year">2024</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/805.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135365_2a01aade.jpeg" 
+                                 alt="Cover of Anywhere I Lay My Head"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Anywhere I Lay My Head</h3>
+                            <p class="release-artist">Scarlett Johansson</p>
+                                                        <p class="release-year">2024</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/900.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135564_4f335477.jpeg" 
+                                 alt="Cover of Special Beat Service"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Special Beat Service</h3>
+                            <p class="release-artist">The Beat (2)</p>
+                                                        <p class="release-year">2024</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/909.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135572_cdb954d8.jpeg" 
+                                 alt="Cover of Magic Secrets 2024 / Magic Secrets #2"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Magic Secrets 2024 / Magic Secrets #2</h3>
+                            <p class="release-artist">Noel Gallagher&#039;s High Flying Birds</p>
+                                                        <p class="release-year">2024</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/906.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135569_59e5aad5.jpeg" 
+                                 alt="Cover of Speak &amp; Spell"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Speak &amp; Spell</h3>
+                            <p class="release-artist">Depeche Mode</p>
+                                                        <p class="release-year">1981</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/878.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135489_3458f569.jpeg" 
+                                 alt="Cover of Philip Glass Solo"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Philip Glass Solo</h3>
+                            <p class="release-artist">Philip Glass</p>
+                                                        <p class="release-year">2024</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/881.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135490_4b8a27f3.jpeg" 
+                                 alt="Cover of Songs Of A Lost World"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Songs Of A Lost World</h3>
+                            <p class="release-artist">The Cure</p>
+                                                        <p class="release-year">2024</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/847.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135464_19730e0a.jpeg" 
+                                 alt="Cover of Weezer"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Weezer</h3>
+                            <p class="release-artist">Weezer</p>
+                                                        <p class="release-year">2016</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/827.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135387_781b2d15.jpeg" 
+                                 alt="Cover of London Calling"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">London Calling</h3>
+                            <p class="release-artist">The Clash</p>
+                                                        <p class="release-year">2013</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/811.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135370_9030f583.jpeg" 
+                                 alt="Cover of Big Beat From Badsville"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Big Beat From Badsville</h3>
+                            <p class="release-artist">The Cramps</p>
+                                                        <p class="release-year">2013</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/911.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135573_a4e44423.jpeg" 
+                                 alt="Cover of Bucky Fellini"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Bucky Fellini</h3>
+                            <p class="release-artist">The Dead Milkmen</p>
+                                                        <p class="release-year">2024</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/839.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135397_4f195ef8.jpeg" 
+                                 alt="Cover of MTV Unplugged"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">MTV Unplugged</h3>
+                            <p class="release-artist">10,000 Maniacs</p>
+                                                        <p class="release-year">2024</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/850.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135465_90e3ecb2.jpeg" 
+                                 alt="Cover of Nevermind"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Nevermind</h3>
+                            <p class="release-artist">Nirvana</p>
+                                                        <p class="release-year">1991</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/880.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135490_c76450ac.jpeg" 
+                                 alt="Cover of Sgt. Pepper&#039;s Lonely Hearts Club Band"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Sgt. Pepper&#039;s Lonely Hearts Club Band</h3>
+                            <p class="release-artist">The Beatles</p>
+                                                        <p class="release-year">2017</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/845.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135401_eb46dec4.jpeg" 
+                                 alt="Cover of Art Devo 1973-1977"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Art Devo 1973-1977</h3>
+                            <p class="release-artist">Devo</p>
+                                                        <p class="release-year">2024</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/813.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135373_4ab99eeb.jpeg" 
+                                 alt="Cover of ...And Justice For All"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">...And Justice For All</h3>
+                            <p class="release-artist">Metallica</p>
+                                                        <p class="release-year">2018</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/812.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135372_3c995b6f.jpeg" 
+                                 alt="Cover of Ride The Lightning"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Ride The Lightning</h3>
+                            <p class="release-artist">Metallica</p>
+                                                        <p class="release-year">2022</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/815.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135374_04e91a45.jpeg" 
+                                 alt="Cover of Kill &#039;Em All"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Kill &#039;Em All</h3>
+                            <p class="release-artist">Metallica</p>
+                                                        <p class="release-year">2016</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/915.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135576_f1c666be.jpeg" 
+                                 alt="Cover of No Name"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">No Name</h3>
+                            <p class="release-artist">Jack White (2)</p>
+                                                        <p class="release-year">2024</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/904.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135568_8dd42b8d.jpeg" 
+                                 alt="Cover of Bad Brains"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Bad Brains</h3>
+                            <p class="release-artist">Bad Brains</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/858.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135473_7b7ace35.jpeg" 
+                                 alt="Cover of Dead Letter Office"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Dead Letter Office</h3>
+                            <p class="release-artist">R.E.M.</p>
+                                                        <p class="release-year">1987</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/849.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135465_09e5cb14.jpeg" 
+                                 alt="Cover of Planet P"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Planet P</h3>
+                            <p class="release-artist">Planet P Project</p>
+                                                        <p class="release-year">1983</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/862.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135477_d7e54744.jpeg" 
+                                 alt="Cover of A Love Supreme"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">A Love Supreme</h3>
+                            <p class="release-artist">John Coltrane</p>
+                                                        <p class="release-year">2021</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/917.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135579_de98ee42.jpeg" 
+                                 alt="Cover of Acoustic Recordings 1998-2016"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Acoustic Recordings 1998-2016</h3>
+                            <p class="release-artist">Jack White (2)</p>
+                                                        <p class="release-year">2016</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/920.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135580_745082ce.jpeg" 
+                                 alt="Cover of Entering Heaven Alive"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Entering Heaven Alive</h3>
+                            <p class="release-artist">Jack White (2)</p>
+                                                        <p class="release-year">2022</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/902.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135567_9aae7fc9.jpeg" 
+                                 alt="Cover of 50 Years Of De-Evolution (1973-2023)"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">50 Years Of De-Evolution (1973-2023)</h3>
+                            <p class="release-artist">Devo</p>
+                                                        <p class="release-year">2023</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/871.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135483_5a2eac2e.jpeg" 
+                                 alt="Cover of Costello Music"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Costello Music</h3>
+                            <p class="release-artist">The Fratellis</p>
+                                                        <p class="release-year">2014</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/908.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135571_dc4b9625.jpeg" 
+                                 alt="Cover of Stop Making Sense (Music From A Film By Jonathan Demme And Talking Heads)"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Stop Making Sense (Music From A Film By Jonathan Demme And Talking Heads)</h3>
+                            <p class="release-artist">Talking Heads</p>
+                                                        <p class="release-year">2023</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/806.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135366_3743d568.jpeg" 
+                                 alt="Cover of Peter Gabriel"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Peter Gabriel</h3>
+                            <p class="release-artist">Peter Gabriel</p>
+                                                        <p class="release-year">1978</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/804.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135364_85d6fc95.jpeg" 
+                                 alt="Cover of Peter Gabriel"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Peter Gabriel</h3>
+                            <p class="release-artist">Peter Gabriel</p>
+                                                        <p class="release-year">1977</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/872.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135485_018a09d8.jpeg" 
+                                 alt="Cover of 101"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">101</h3>
+                            <p class="release-artist">Depeche Mode</p>
+                                                        <p class="release-year">2016</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/884.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135493_26973360.jpeg" 
+                                 alt="Cover of Blue Monday"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Blue Monday</h3>
+                            <p class="release-artist">New Order</p>
+                                                        <p class="release-year">1985</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/912.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135575_e66aa827.jpeg" 
+                                 alt="Cover of I Want To Be The Boy To Warm Your Mother&#039;s Heart / Little Acorns"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">I Want To Be The Boy To Warm Your Mother&#039;s Heart / Little Acorns</h3>
+                            <p class="release-artist">The White Stripes</p>
+                                                        <p class="release-year">2013</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/919.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135579_66bb275d.jpeg" 
+                                 alt="Cover of Nine Miles From The White City"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Nine Miles From The White City</h3>
+                            <p class="release-artist">The White Stripes</p>
+                                                        <p class="release-year">2013</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/816.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135374_74984c4a.jpeg" 
+                                 alt="Cover of The Epic"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">The Epic</h3>
+                            <p class="release-artist">Kamasi Washington</p>
+                                                        <p class="release-year">2015</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/899.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135564_908190b2.jpeg" 
+                                 alt="Cover of Unplugged 1991"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Unplugged 1991</h3>
+                            <p class="release-artist">R.E.M.</p>
+                                                        <p class="release-year">2014</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/883.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135493_501e96d7.jpeg" 
+                                 alt="Cover of Constellations Phase 1"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Constellations Phase 1</h3>
+                            <p class="release-artist">Ariana &amp; The Rose</p>
+                                                        <p class="release-year">2019</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/914.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135576_8854d667.jpeg" 
+                                 alt="Cover of Mommy"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Mommy</h3>
+                            <p class="release-artist">Be Your Own Pet</p>
+                                                        <p class="release-year">2023</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/925.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135584_887b9f0e.jpeg" 
+                                 alt="Cover of The B-52&#039;s"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">The B-52&#039;s</h3>
+                            <p class="release-artist">The B-52&#039;s</p>
+                                                        <p class="release-year">1979</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/924.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135583_96b1ac52.jpeg" 
+                                 alt="Cover of The Getaway"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">The Getaway</h3>
+                            <p class="release-artist">Red Hot Chili Peppers</p>
+                                                        <p class="release-year">2016</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/802.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135363_b58d30b0.jpeg" 
+                                 alt="Cover of Obscure Alternatives = 苦悩の旋律"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Obscure Alternatives = 苦悩の旋律</h3>
+                            <p class="release-artist">Japan</p>
+                                                        <p class="release-year">1978</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/876.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135487_23de21b6.jpeg" 
+                                 alt="Cover of Joyride"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Joyride</h3>
+                            <p class="release-artist">Karina Rykman</p>
+                                                        <p class="release-year">2023</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/861.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135475_548523eb.jpeg" 
+                                 alt="Cover of Crescent"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Crescent</h3>
+                            <p class="release-artist">The John Coltrane Quartet</p>
+                                                        <p class="release-year">2022</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/809.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135368_6a3046c2.jpeg" 
+                                 alt="Cover of Of Course You Do"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Of Course You Do</h3>
+                            <p class="release-artist">Slothrust</p>
+                                                        <p class="release-year">2014</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/834.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135393_68655fdf.jpeg" 
+                                 alt="Cover of Show Me How You Want It To Be"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Show Me How You Want It To Be</h3>
+                            <p class="release-artist">Slothrust</p>
+                                                        <p class="release-year">2017</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/829.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135388_88989af9.jpeg" 
+                                 alt="Cover of Random Access Memories"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Random Access Memories</h3>
+                            <p class="release-artist">Daft Punk</p>
+                                                        <p class="release-year">2022</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/820.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135379_2027a5ce.jpeg" 
+                                 alt="Cover of Pet Sounds"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Pet Sounds</h3>
+                            <p class="release-artist">The Beach Boys</p>
+                                                        <p class="release-year">2016</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/866.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135479_9efe1ccb.jpeg" 
+                                 alt="Cover of LateNightTales"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">LateNightTales</h3>
+                            <p class="release-artist">Khruangbin</p>
+                                                        <p class="release-year">2021</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/843.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135400_4b42c8a0.jpeg" 
+                                 alt="Cover of A Charlie Brown Christmas "
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">A Charlie Brown Christmas </h3>
+                            <p class="release-artist">Vince Guaraldi Trio</p>
+                                                        <p class="release-year">2022</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/930.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135588_1697044b.jpeg" 
+                                 alt="Cover of Morning Shift"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Morning Shift</h3>
+                            <p class="release-artist">Steep Canyon Rangers</p>
+                                                        <p class="release-year">2023</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/927.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135587_fe5eba8b.jpeg" 
+                                 alt="Cover of Goodnight, God Bless, I Love U, Delete."
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Goodnight, God Bless, I Love U, Delete.</h3>
+                            <p class="release-artist">†††</p>
+                                                        <p class="release-year">2023</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/885.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135494_798e50c4.jpeg" 
+                                 alt="Cover of Feels Your Pain"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Feels Your Pain</h3>
+                            <p class="release-artist">Slothrust</p>
+                                                        <p class="release-year">2023</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/913.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135575_ace22083.jpeg" 
+                                 alt="Cover of Acoustic Tour 2015"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Acoustic Tour 2015</h3>
+                            <p class="release-artist">Jack White (2)</p>
+                                                        <p class="release-year">2016</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/918.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135579_e13e8108.jpeg" 
+                                 alt="Cover of Icky Thump"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Icky Thump</h3>
+                            <p class="release-artist">The White Stripes</p>
+                                                        <p class="release-year">2022</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/869.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135482_1469c0a2.jpeg" 
+                                 alt="Cover of Out In The Storm"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Out In The Storm</h3>
+                            <p class="release-artist">Waxahatchee</p>
+                                                        <p class="release-year">2017</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/844.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135401_82b22645.jpeg" 
+                                 alt="Cover of Colors"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Colors</h3>
+                            <p class="release-artist">Beck</p>
+                                                        <p class="release-year">2017</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/928.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135587_ac40c027.jpeg" 
+                                 alt="Cover of New Traditionalists"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">New Traditionalists</h3>
+                            <p class="release-artist">Devo</p>
+                                                        <p class="release-year">2020</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/910.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135572_8642ee59.jpeg" 
+                                 alt="Cover of Hardcore Volume 1"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Hardcore Volume 1</h3>
+                            <p class="release-artist">Devo</p>
+                                                        <p class="release-year">2013</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/853.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135469_376e0edc.jpeg" 
+                                 alt="Cover of Eef Barzelay / Chris Otepka 7&quot;"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Eef Barzelay / Chris Otepka 7&quot;</h3>
+                            <p class="release-artist">Eef Barzelay, Chris Otepka</p>
+                                                        <p class="release-year">2014</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/855.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135470_db3133be.jpeg" 
+                                 alt="Cover of Flash In A Pan / Dental / Mental"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Flash In A Pan / Dental / Mental</h3>
+                            <p class="release-artist">The Heligoats, The Glass Band (2)</p>
+                                                        <p class="release-year">2020</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/852.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135468_0c488d0e.jpeg" 
+                                 alt="Cover of Live Free / Let Loose"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Live Free / Let Loose</h3>
+                            <p class="release-artist">Sam Humans, The Heligoats</p>
+                                                        <p class="release-year">2011</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/854.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135470_9ea4d16e.jpeg" 
+                                 alt="Cover of Back To The Lake"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Back To The Lake</h3>
+                            <p class="release-artist">The Heligoats</p>
+                                                        <p class="release-year">2016</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/851.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135467_e60bec5f.jpeg" 
+                                 alt="Cover of The End Of All-Purpose"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">The End Of All-Purpose</h3>
+                            <p class="release-artist">The Heligoats</p>
+                                                        <p class="release-year">2008</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/835.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135393_c1328ead.jpeg" 
+                                 alt="Cover of The Pact"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">The Pact</h3>
+                            <p class="release-artist">Slothrust</p>
+                                                        <p class="release-year">2018</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/797.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135359_4348adbd.jpeg" 
+                                 alt="Cover of Lose Big"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Lose Big</h3>
+                            <p class="release-artist">Eef Barzelay</p>
+                                                        <p class="release-year">2008</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/832.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135391_d03b730e.jpeg" 
+                                 alt="Cover of Green"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Green</h3>
+                            <p class="release-artist">R.E.M.</p>
+                                                        <p class="release-year">2016</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/856.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135471_586f83b7.jpeg" 
+                                 alt="Cover of Document"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Document</h3>
+                            <p class="release-artist">R.E.M.</p>
+                                                        <p class="release-year">1987</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/848.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135464_8330bb63.jpeg" 
+                                 alt="Cover of Maria McKee"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Maria McKee</h3>
+                            <p class="release-artist">Maria McKee</p>
+                                                        <p class="release-year">1989</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/923.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135583_afa477c3.jpeg" 
+                                 alt="Cover of Captive (Music From The Film &quot;Captive&quot;)"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Captive (Music From The Film &quot;Captive&quot;)</h3>
+                            <p class="release-artist">The Edge, Michael Brook</p>
+                                                        <p class="release-year">1987</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/874.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135486_f5dae277.jpeg" 
+                                 alt="Cover of The Power And The Glory"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">The Power And The Glory</h3>
+                            <p class="release-artist">The Bad Ends</p>
+                                                        <p class="release-year">2023</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/807.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135368_57684eb5.jpeg" 
+                                 alt="Cover of C&#039;est Chic"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">C&#039;est Chic</h3>
+                            <p class="release-artist">Chic</p>
+                                                        <p class="release-year">1978</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/916.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135577_13d7963f.jpeg" 
+                                 alt="Cover of Live at Third Man Records"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Live at Third Man Records</h3>
+                            <p class="release-artist">Autolux</p>
+                                                        <p class="release-year">2016</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/870.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135482_d84339ba.jpeg" 
+                                 alt="Cover of Say Something Nasty"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Say Something Nasty</h3>
+                            <p class="release-artist">Nashville Pussy</p>
+                                                        <p class="release-year">2022</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/824.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135383_d9cf76b3.jpeg" 
+                                 alt="Cover of A Woman"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">A Woman</h3>
+                            <p class="release-artist">Qveen Herby</p>
+                                                        <p class="release-year">2022</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/817.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135378_d443c12c.jpeg" 
+                                 alt="Cover of Florasongs"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Florasongs</h3>
+                            <p class="release-artist">The Decemberists</p>
+                                                        <p class="release-year">2015</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/810.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135369_08d23eb1.jpeg" 
+                                 alt="Cover of The Jazz Experiments Of Charles Mingus"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">The Jazz Experiments Of Charles Mingus</h3>
+                            <p class="release-artist">Charles Mingus</p>
+                                                        <p class="release-year">2020</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/901.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135565_bc877056.jpeg" 
+                                 alt="Cover of Tom Tom Club"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Tom Tom Club</h3>
+                            <p class="release-artist">Tom Tom Club</p>
+                                                        <p class="release-year">2023</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/921.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135581_e5597955.jpeg" 
+                                 alt="Cover of Abacab"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Abacab</h3>
+                            <p class="release-artist">Genesis</p>
+                                                        <p class="release-year">1981</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/798.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135360_edcac465.jpeg" 
+                                 alt="Cover of Night And Day"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Night And Day</h3>
+                            <p class="release-artist">Joe Jackson</p>
+                                                        <p class="release-year">1982</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/833.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135392_1613eacd.jpeg" 
+                                 alt="Cover of Hey Clockface"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Hey Clockface</h3>
+                            <p class="release-artist">Elvis Costello</p>
+                                                        <p class="release-year">2020</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/859.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135474_09a2c7cc.jpeg" 
+                                 alt="Cover of Flood"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Flood</h3>
+                            <p class="release-artist">They Might Be Giants</p>
+                                                        <p class="release-year">2023</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/821.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135380_99150b61.jpeg" 
+                                 alt="Cover of Hits Of Les And Mary"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Hits Of Les And Mary</h3>
+                            <p class="release-artist">Les Paul &amp; Mary Ford</p>
+                                                        <p class="release-year">1967</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/889.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135497_a8f47b48.jpeg" 
+                                 alt="Cover of The RCA Victor Encyclopedia Of Recorded Jazz: Album 12 Ven-Z"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">The RCA Victor Encyclopedia Of Recorded Jazz: Album 12 Ven-Z</h3>
+                            <p class="release-artist">Various</p>
+                                                        <p class="release-year">1956</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/888.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135496_ed62a5f8.jpeg" 
+                                 alt="Cover of The RCA Victor Encyclopedia Of Recorded Jazz: Album 11- Sha To Ven"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">The RCA Victor Encyclopedia Of Recorded Jazz: Album 11- Sha To Ven</h3>
+                            <p class="release-artist">Various</p>
+                                                        <p class="release-year">1956</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/887.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135496_90eb443a.jpeg" 
+                                 alt="Cover of The RCA Victor Encyclopedia Of Recorded Jazz: Album 10 - Ori To Rus"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">The RCA Victor Encyclopedia Of Recorded Jazz: Album 10 - Ori To Rus</h3>
+                            <p class="release-artist">Various</p>
+                                                        <p class="release-year">1956</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/897.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135563_4c640320.jpeg" 
+                                 alt="Cover of The RCA Victor Encyclopedia Of Recorded Jazz: Album 9 - Mot To Oli"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">The RCA Victor Encyclopedia Of Recorded Jazz: Album 9 - Mot To Oli</h3>
+                            <p class="release-artist">Various</p>
+                                                        <p class="release-year">1956</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/896.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135562_5a511161.jpeg" 
+                                 alt="Cover of The RCA Victor Encyclopedia Of Recorded Jazz: Album 8- Lew To Mor"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">The RCA Victor Encyclopedia Of Recorded Jazz: Album 8- Lew To Mor</h3>
+                            <p class="release-artist">Various</p>
+                                                        <p class="release-year">1956</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/895.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135561_583df0c8.jpeg" 
+                                 alt="Cover of The RCA Victor Encyclopedia Of Recorded Jazz: Album 7- Joh To Lew"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">The RCA Victor Encyclopedia Of Recorded Jazz: Album 7- Joh To Lew</h3>
+                            <p class="release-artist">Various</p>
+                                                        <p class="release-year">1956</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/894.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135501_ebea9f39.jpeg" 
+                                 alt="Cover of The RCA Victor Encyclopedia Of Recorded Jazz: Album 6 - Hin To Joh"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">The RCA Victor Encyclopedia Of Recorded Jazz: Album 6 - Hin To Joh</h3>
+                            <p class="release-artist">Various</p>
+                                                        <p class="release-year">1956</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/893.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135500_010a80aa.jpeg" 
+                                 alt="Cover of The RCA Victor Encyclopedia Of Recorded Jazz: Album 5 - Gil To Hig"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">The RCA Victor Encyclopedia Of Recorded Jazz: Album 5 - Gil To Hig</h3>
+                            <p class="release-artist">Various</p>
+                                                        <p class="release-year">1956</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/892.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135500_713a7711.jpeg" 
+                                 alt="Cover of The RCA Victor Encyclopedia Of Recorded Jazz: Album 4 - Eck To Gar"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">The RCA Victor Encyclopedia Of Recorded Jazz: Album 4 - Eck To Gar</h3>
+                            <p class="release-artist">Various</p>
+                                                        <p class="release-year">1956</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/891.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135498_9a4fa3ea.jpeg" 
+                                 alt="Cover of The RCA Victor Encyclopedia Of Recorded Jazz: Album 3 - Cli To Dor"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">The RCA Victor Encyclopedia Of Recorded Jazz: Album 3 - Cli To Dor</h3>
+                            <p class="release-artist">Various</p>
+                                                        <p class="release-year">1956</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/890.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135497_b046bc41.jpeg" 
+                                 alt="Cover of The RCA Victor Encyclopedia Of Recorded Jazz: Album 2 - Bei To Cla"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">The RCA Victor Encyclopedia Of Recorded Jazz: Album 2 - Bei To Cla</h3>
+                            <p class="release-artist">Various</p>
+                                                        <p class="release-year">1956</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/886.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135494_ba8eec1a.jpeg" 
+                                 alt="Cover of The RCA Victor Encyclopedia Of Recorded Jazz: Album 1 A-Bec"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">The RCA Victor Encyclopedia Of Recorded Jazz: Album 1 A-Bec</h3>
+                            <p class="release-artist">Various</p>
+                                                        <p class="release-year">1956</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/864.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135478_b7f48b96.jpeg" 
+                                 alt="Cover of Plays The Cole Porter Songbook"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Plays The Cole Porter Songbook</h3>
+                            <p class="release-artist">Oscar Peterson</p>
+                                                        <p class="release-year">2010</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/823.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135382_1497373e.jpeg" 
+                                 alt="Cover of Wynton Marsalis Plays Handel, Purcell, Torelli, Fasch, Molter"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Wynton Marsalis Plays Handel, Purcell, Torelli, Fasch, Molter</h3>
+                            <p class="release-artist">Wynton Marsalis, Edita Gruberova, Raymond Leppard, English Chamber Orchestra, Johann Friedrich Fasch, Georg Friedrich Händel, Giuseppe Torelli, Henry Purcell, Johann Melchior Molter</p>
+                                                        <p class="release-year">1984</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/875.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135486_f49dd1a8.jpeg" 
+                                 alt="Cover of Djangology"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Djangology</h3>
+                            <p class="release-artist">Django Reinhardt, Quintette Du Hot Club De France</p>
+                                                        <p class="release-year">2015</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/860.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135474_539a4fd4.jpeg" 
+                                 alt="Cover of &quot;Live&quot; At The Village Vanguard"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">&quot;Live&quot; At The Village Vanguard</h3>
+                            <p class="release-artist">John Coltrane</p>
+                                                        <p class="release-year">2022</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/837.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135395_31573da2.jpeg" 
+                                 alt="Cover of Electra Heart"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Electra Heart</h3>
+                            <p class="release-artist">Marina &amp; The Diamonds</p>
+                                                        <p class="release-year">2015</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/882.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135492_55162c42.jpeg" 
+                                 alt="Cover of Radio And Store Sampler"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Radio And Store Sampler</h3>
+                            <p class="release-artist">Various</p>
+                                                        <p class="release-year">1983</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/831.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135389_6d02ef9c.jpeg" 
+                                 alt="Cover of Rock Your Body"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Rock Your Body</h3>
+                            <p class="release-artist">Hamilton Bohannon</p>
+                                                        <p class="release-year">1983</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/825.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135383_56b34980.jpeg" 
+                                 alt="Cover of Vienna"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Vienna</h3>
+                            <p class="release-artist">Ultravox</p>
+                                                        <p class="release-year">1980</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/879.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135489_6219daab.jpeg" 
+                                 alt="Cover of Hammersmith &#039;82!"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Hammersmith &#039;82!</h3>
+                            <p class="release-artist">Duran Duran</p>
+                                                        <p class="release-year">2022</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/830.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135389_adb63be7.jpeg" 
+                                 alt="Cover of A Tribute To Jack Johnson"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">A Tribute To Jack Johnson</h3>
+                            <p class="release-artist">Miles Davis</p>
+                                                        <p class="release-year">2020</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/905.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135568_d6967bf2.jpeg" 
+                                 alt="Cover of High Land, Hard Rain"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">High Land, Hard Rain</h3>
+                            <p class="release-artist">Aztec Camera</p>
+                                                        <p class="release-year">1983</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/840.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135397_e3caaca1.jpeg" 
+                                 alt="Cover of Notorious"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Notorious</h3>
+                            <p class="release-artist">Duran Duran</p>
+                                                        <p class="release-year">1986</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/865.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135478_ed4e1697.jpeg" 
+                                 alt="Cover of End Is Forever"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">End Is Forever</h3>
+                            <p class="release-artist">The Ataris</p>
+                                                        <p class="release-year">2022</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/877.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135488_959f9ea8.jpeg" 
+                                 alt="Cover of Discovers Hoagy Carmichael&#039;s Music Shop"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Discovers Hoagy Carmichael&#039;s Music Shop</h3>
+                            <p class="release-artist">Stark Reality</p>
+                                                        <p class="release-year">2022</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/801.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135361_eb3068f5.jpeg" 
+                                 alt="Cover of Hey Jude (The Beatles Again)"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Hey Jude (The Beatles Again)</h3>
+                            <p class="release-artist">The Beatles</p>
+                                                        <p class="release-year">1970</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/819.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135379_8bf7ffe5.jpeg" 
+                                 alt="Cover of Sgt. Pepper&#039;s Lonely Hearts Club Band"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Sgt. Pepper&#039;s Lonely Hearts Club Band</h3>
+                            <p class="release-artist">The Beatles</p>
+                                                        <p class="release-year">1968</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/907.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135571_416a6e6d.jpeg" 
+                                 alt="Cover of Boom Boom Chi Boom Boom"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Boom Boom Chi Boom Boom</h3>
+                            <p class="release-artist">Tom Tom Club</p>
+                                                        <p class="release-year">1989</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/814.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135373_1a082256.jpeg" 
+                                 alt="Cover of Live at Webster Hall, New York, NY - September 27th, 2016"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Live at Webster Hall, New York, NY - September 27th, 2016</h3>
+                            <p class="release-artist">Metallica</p>
+                                                        <p class="release-year">2017</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/842.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135400_7814a4f7.jpeg" 
+                                 alt="Cover of Ten"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Ten</h3>
+                            <p class="release-artist">Pearl Jam</p>
+                                                        <p class="release-year">2017</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/903.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135567_0b2391a4.jpeg" 
+                                 alt="Cover of Other Voices"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Other Voices</h3>
+                            <p class="release-artist">The Doors</p>
+                                                        <p class="release-year">2015</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/868.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135481_22517289.jpeg" 
+                                 alt="Cover of In The Aeroplane Over The Sea"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">In The Aeroplane Over The Sea</h3>
+                            <p class="release-artist">Neutral Milk Hotel</p>
+                                                        <p class="release-year">2009</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/826.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135384_ef38cbc3.jpeg" 
+                                 alt="Cover of Greatest Hits In Concert"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Greatest Hits In Concert</h3>
+                            <p class="release-artist">Queen</p>
+                                                        <p class="release-year">2018</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/799.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135360_ac476bcb.jpeg" 
+                                 alt="Cover of ...Nothing Like The Sun"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">...Nothing Like The Sun</h3>
+                            <p class="release-artist">Sting</p>
+                                                        <p class="release-year">1987</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/800.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135361_a00564a6.jpeg" 
+                                 alt="Cover of  Luciferian Light Orchestra"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title"> Luciferian Light Orchestra</h3>
+                            <p class="release-artist">Luciferian Light Orchestra</p>
+                                                        <p class="release-year">2015</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/898.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135563_492fd7ee.jpeg" 
+                                 alt="Cover of Here Come The Runts"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Here Come The Runts</h3>
+                            <p class="release-artist">Awolnation</p>
+                                                        <p class="release-year">2018</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/838.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135396_766c5b41.jpeg" 
+                                 alt="Cover of Froot"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Froot</h3>
+                            <p class="release-artist">Marina &amp; The Diamonds</p>
+                                                        <p class="release-year">2015</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/922.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135582_2a99f92a.jpeg" 
+                                 alt="Cover of Christmas Songs"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Christmas Songs</h3>
+                            <p class="release-artist">Diana Krall, The Clayton-Hamilton Jazz Orchestra</p>
+                                                        <p class="release-year">2016</p>
+                                                    </div>
+                    </a>
+                                        <a href="/collections/adamjlea/releases/822.html" class="release-card">
+                                                <div class="release-cover">
+                            <img src="/images/covers/1739135382_cf9bbbb9.jpeg" 
+                                 alt="Cover of Paul&#039;s Boutique"
+                                 loading="lazy">
+                        </div>
+                                                <div class="release-info">
+                            <h3 class="release-title">Paul&#039;s Boutique</h3>
+                            <p class="release-artist">Beastie Boys</p>
+                                                        <p class="release-year">2019</p>
+                                                    </div>
+                    </a>
+                                    </div>
+            </div>
+        </div>
+            </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabs = document.querySelectorAll('.nav-tab');
+            const statsView = document.getElementById('stats-view');
+            const collectionView = document.getElementById('collection-view');
+
+            // Check hash on page load
+            const hash = window.location.hash || '#stats';
+            showView(hash.substring(1));
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const view = this.dataset.view;
+                    showView(view);
+                    window.location.hash = view;
+                });
+            });
+
+            function showView(view) {
+                // Update tabs
+                tabs.forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.view === view);
+                });
+
+                // Show/hide views
+                statsView.style.display = view === 'stats' ? 'block' : 'none';
+                collectionView.style.display = view === 'collection' ? 'block' : 'none';
+            }
+        });
+    </script>
+</body>
+</html> 
