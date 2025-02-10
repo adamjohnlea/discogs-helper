@@ -157,6 +157,33 @@ if (!$auth->isLoggedIn()) {
             <a href="?action=import" class="button">Import Collection</a>
         </div>
     </div>';
+
+    // Add Chart.js implementation
+    $content .= '
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const ctx = document.getElementById("growthChart").getContext("2d");
+        new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: ' . json_encode($growthLabels) . ',
+                datasets: [{
+                    data: ' . json_encode($growthData) . ',
+                    borderColor: "rgba(26, 115, 232, 0.8)",
+                    backgroundColor: "rgba(26, 115, 232, 0.1)",
+                    fill: true,
+                    borderWidth: 1.5,
+                    pointRadius: 0,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+            }
+        });
+    });
+    </script>';
 }
 
 // Add some specific styles for both welcome and dashboard pages
@@ -395,79 +422,5 @@ $styles = '
         width: 100% !important;
     }
 </style>';
-
-// Add Chart.js implementation
-$content .= '
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const ctx = document.getElementById("growthChart").getContext("2d");
-    new Chart(ctx, {
-        type: "line",
-        data: {
-            labels: ' . json_encode($growthLabels) . ',
-            datasets: [{
-                data: ' . json_encode($growthData) . ',
-                borderColor: "rgba(26, 115, 232, 0.8)",
-                backgroundColor: "rgba(26, 115, 232, 0.1)",
-                fill: true,
-                borderWidth: 1.5,
-                pointRadius: 0,
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    enabled: true,
-                    mode: "index",
-                    intersect: false,
-                    backgroundColor: "rgba(0, 0, 0, 0.8)",
-                    padding: 8,
-                    cornerRadius: 4,
-                    titleFont: {
-                        size: 12
-                    },
-                    bodyFont: {
-                        size: 12
-                    },
-                    callbacks: {
-                        label: function(context) {
-                            return context.parsed.y + " records added";
-                        }
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    display: true,
-                    grid: {
-                        display: false
-                    },
-                    ticks: {
-                        font: {
-                            size: 10
-                        },
-                        color: "#666"
-                    }
-                },
-                y: {
-                    display: false,
-                    beginAtZero: true
-                }
-            },
-            interaction: {
-                intersect: false,
-                mode: "index"
-            }
-        }
-    });
-});
-</script>';
 
 require __DIR__ . '/layout.php';
