@@ -7,188 +7,8 @@
 use DiscogsHelper\Auth;
 use DiscogsHelper\Database;
 
-if (!$auth->isLoggedIn()) {
-    $content = '
-    <div class="welcome-section">
-        <h1>Welcome to Discogs Helper</h1>
-        
-        <p>Discogs Helper is a tool designed to help you manage and explore your vinyl record collection. 
-        With this application, you can:</p>
-        
-        <ul>
-            <li>Search and browse the Discogs database</li>
-            <li>Import your existing Discogs collection</li>
-            <li>Manage and organize your vinyl records</li>
-            <li>Keep track of your collection\'s details</li>
-        </ul>
-
-        <div class="action-buttons">
-            <a href="?action=login" class="button">Login</a>
-            <a href="?action=register" class="button">Register</a>
-        </div>
-    </div>';
-} else {
-    // Get the current user's collection stats
-    $userId = $auth->getCurrentUser()->id;
-    $collectionSize = $db->getCollectionSize($userId);
-    $latestRelease = $db->getLatestRelease($userId);
-    $uniqueArtistCount = $db->getUniqueArtistCount($userId);
-    $topArtists = $db->getTopArtists($userId, 5);
-    $formatDistribution = $db->getFormatDistribution($userId);
-    $yearRange = $db->getYearRange($userId);
-    $recentActivity = $db->getRecentActivity($userId, 30);
-    $monthlyGrowth = $db->getMonthlyGrowth($userId, 12);
-
-    // Get the daily additions data
-    $dailyAdditions = $db->getDailyAdditions($userId);
-
-    // Calculate format percentages
-    $formatPercentages = array_map(function($format) use ($collectionSize) {
-        return [
-            'format' => $format['format'],
-            'percentage' => round(($format['count'] / $collectionSize) * 100)
-        ];
-    }, $formatDistribution);
-
-    // Prepare monthly growth data for the chart
-    $growthLabels = array_map(function($item) {
-        return date('M Y', strtotime($item['month'] . '-01'));
-    }, $monthlyGrowth);
-    
-    $growthData = array_map(function($item) {
-        return $item['count'];
-    }, $monthlyGrowth);
-
-    $content = '
-    <div class="dashboard-section">
-        <h1>Your Collection Dashboard</h1>
-        
-        <div class="stats-grid">
-            <div class="stat-card collection-stats">
-                <h3>Collection Stats</h3>
-                <div class="stat-row">
-                    <div class="stat-item">
-                        <p class="stat-number">' . number_format($collectionSize) . '</p>
-                        <p class="stat-label">Records</p>
-                    </div>
-                    <div class="stat-divider"></div>
-                    <div class="stat-item">
-                        <p class="stat-number">' . number_format($uniqueArtistCount) . '</p>
-                        <p class="stat-label">Artists</p>
-                    </div>
-                </div>
-                
-                <div class="additional-stats">
-                    <div class="stat-detail formats">
-                        <span class="detail-label">Formats:</span>
-                        <span class="detail-value">' . 
-                            implode(', ', array_map(function($format) {
-                                return $format['format'] . ' ' . $format['percentage'] . '%';
-                            }, array_slice($formatPercentages, 0, 3))) . 
-                        '</span>
-                    </div>';
-
-    if ($yearRange && $yearRange['oldest'] && $yearRange['newest']) {
-        $content .= '
-                    <div class="stat-detail years">
-                        <span class="detail-label">Years:</span>
-                        <span class="detail-value">' . $yearRange['oldest'] . ' - ' . $yearRange['newest'] . '</span>
-                    </div>';
-    }
-
-    if ($recentActivity > 0) {
-        $content .= '
-                    <div class="stat-detail recent">
-                        <span class="detail-label">Last 30 Days:</span>
-                        <span class="detail-value">+' . $recentActivity . ' records</span>
-                    </div>';
-    }
-
-    $content .= '
-                    <div class="growth-chart-container">
-                        <div class="chart-header">
-                            <h4>Collection Growth</h4>
-                        </div>
-                        <canvas id="growthChart"></canvas>
-                    </div>
-                </div>
-            </div>';
-
-    if ($latestRelease) {
-        $content .= '
-            <div class="stat-card latest-addition">
-                <h3>Latest Addition</h3>
-                ' . ($latestRelease->coverPath 
-                    ? '<img src="' . htmlspecialchars($latestRelease->getCoverUrl()) . '" 
-                           alt="Latest addition cover" class="latest-cover">' 
-                    : '') . '
-                <p class="latest-title">' . htmlspecialchars($latestRelease->title) . '</p>
-                <p class="latest-artist">' . htmlspecialchars($latestRelease->artist) . '</p>
-                <p class="stat-label">Added ' . date('F j, Y', strtotime($latestRelease->dateAdded)) . '</p>
-            </div>';
-    }
-
-    $content .= '
-        </div>';
-
-    if (!empty($topArtists)) {
-        $content .= '
-        <div class="top-artists-section">
-            <h3>Top Artists</h3>
-            <div class="artist-list">';
-            
-        foreach ($topArtists as $artist) {
-            $content .= '
-                <div class="artist-item">
-                    <span class="artist-name"><a href="?action=list&q=' . urlencode($artist['artist']) . '">' . htmlspecialchars($artist['artist']) . '</a></span>
-                    <span class="artist-count">' . number_format($artist['count']) . ' records</span>
-                </div>';
-        }
-        
-        $content .= '
-            </div>
-        </div>';
-    }
-
-    $content .= '
-        <div class="action-buttons">
-            <a href="?action=search" class="button">Search Discogs</a>
-            <a href="?action=list" class="button">View Collection</a>
-            <a href="?action=import" class="button">Import Collection</a>
-        </div>
-    </div>';
-
-    // Add Chart.js implementation
-    $content .= '
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const ctx = document.getElementById("growthChart").getContext("2d");
-        new Chart(ctx, {
-            type: "line",
-            data: {
-                labels: ' . json_encode($growthLabels) . ',
-                datasets: [{
-                    data: ' . json_encode($growthData) . ',
-                    borderColor: "rgba(26, 115, 232, 0.8)",
-                    backgroundColor: "rgba(26, 115, 232, 0.1)",
-                    fill: true,
-                    borderWidth: 1.5,
-                    pointRadius: 0,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-            }
-        });
-    });
-    </script>';
-}
-
-// Add some specific styles for both welcome and dashboard pages
-$styles = '
-<style>
+// Initialize styles variable
+$styles = '<style>
     .welcome-section,
     .dashboard-section {
         max-width: 800px;
@@ -418,9 +238,325 @@ $styles = '
 
     #growthChart {
         margin-top: 0.5rem;
-        height: 60px !important;
+        height: 80px !important;
         width: 100% !important;
     }
 </style>';
+
+if (!$auth->isLoggedIn()) {
+    $content = '
+    <div class="welcome-section">
+        <h1>Welcome to Discogs Helper</h1>
+        
+        <p>Discogs Helper is a tool designed to help you manage and explore your vinyl record collection. 
+        With this application, you can:</p>
+        
+        <ul>
+            <li>Search and browse the Discogs database</li>
+            <li>Import your existing Discogs collection</li>
+            <li>Manage and organize your vinyl records</li>
+            <li>Keep track of your collection\'s details</li>
+        </ul>
+
+        <div class="action-buttons">
+            <a href="?action=login" class="button">Login</a>
+            <a href="?action=register" class="button">Register</a>
+        </div>
+    </div>';
+} else {
+    // Get the current user's collection stats
+    $userId = $auth->getCurrentUser()->id;
+    $collectionSize = $db->getCollectionSize($userId);
+
+    // Check if collection is empty
+    if ($collectionSize === 0) {
+        $content = '
+        <div class="dashboard-section">
+            <h1>Welcome to Your Collection Dashboard</h1>
+            <div class="empty-collection-message">
+                <p>Your collection is currently empty. To get started:</p>
+                <ul>
+                    <li>Import your existing Discogs collection</li>
+                    <li>Or add releases manually through the search function</li>
+                </ul>
+                <div class="action-buttons">
+                    <a href="?action=import" class="button">Import Collection</a>
+                    <a href="?action=search" class="button">Search Discogs</a>
+                </div>
+            </div>
+        </div>';
+
+        // Add styles for empty collection state
+        $styles .= '
+        <style>
+            .empty-collection-message {
+                background: #f8f9fa;
+                border-radius: 8px;
+                padding: 2rem;
+                text-align: center;
+                margin: 2rem 0;
+            }
+
+            .empty-collection-message ul {
+                list-style: none;
+                padding: 0;
+                margin: 1.5rem 0;
+            }
+
+            .empty-collection-message li {
+                margin: 0.5rem 0;
+                color: #666;
+            }
+
+            .empty-collection-message .action-buttons {
+                display: flex;
+                gap: 1rem;
+                justify-content: center;
+                margin-top: 2rem;
+            }
+
+            @media (max-width: 768px) {
+                .empty-collection-message .action-buttons {
+                    flex-direction: column;
+                }
+            }
+        </style>';
+    } else {
+        $latestRelease = $db->getLatestRelease($userId);
+        $uniqueArtistCount = $db->getUniqueArtistCount($userId);
+        $topArtists = $db->getTopArtists($userId, 5);
+        $formatDistribution = $db->getFormatDistribution($userId);
+        $yearRange = $db->getYearRange($userId);
+        $recentActivity = $db->getRecentActivity($userId, 30);
+        $monthlyGrowth = $db->getMonthlyGrowth($userId, 12);
+
+        // Get the daily additions data
+        $dailyAdditions = $db->getDailyAdditions($userId);
+
+        // Calculate format percentages
+        $formatPercentages = array_map(function($format) use ($collectionSize) {
+            return [
+                'format' => $format['format'],
+                'percentage' => round(($format['count'] / $collectionSize) * 100)
+            ];
+        }, $formatDistribution);
+
+        // Prepare monthly growth data for the chart
+        $growthLabels = array_map(function($item) {
+            return date('M \'y', strtotime($item['month'] . '-01'));
+        }, $monthlyGrowth);
+        
+        $growthData = array_map(function($item) {
+            return $item['count'];
+        }, $monthlyGrowth);
+
+        $content = '
+        <div class="dashboard-section">
+            <h1>Your Collection Dashboard</h1>
+            
+            <div class="stats-grid">
+                <div class="stat-card collection-stats">
+                    <h3>Collection Stats</h3>
+                    <div class="stat-row">
+                        <div class="stat-item">
+                            <p class="stat-number">' . number_format($collectionSize) . '</p>
+                            <p class="stat-label">Records</p>
+                        </div>
+                        <div class="stat-divider"></div>
+                        <div class="stat-item">
+                            <p class="stat-number">' . number_format($uniqueArtistCount) . '</p>
+                            <p class="stat-label">Artists</p>
+                        </div>
+                    </div>
+                    
+                    <div class="additional-stats">
+                        <div class="stat-detail formats">
+                            <span class="detail-label">Formats:</span>
+                            <span class="detail-value">' . 
+                                implode(', ', array_map(function($format) {
+                                    return $format['format'] . ' ' . $format['percentage'] . '%';
+                                }, array_slice($formatPercentages, 0, 3))) . 
+                            '</span>
+                        </div>';
+
+        if ($yearRange && $yearRange['oldest'] && $yearRange['newest']) {
+            $content .= '
+                        <div class="stat-detail years">
+                            <span class="detail-label">Years:</span>
+                            <span class="detail-value">' . $yearRange['oldest'] . ' - ' . $yearRange['newest'] . '</span>
+                        </div>';
+        }
+
+        if ($recentActivity > 0) {
+            $content .= '
+                        <div class="stat-detail recent">
+                            <span class="detail-label">Last 30 Days:</span>
+                            <span class="detail-value">+' . $recentActivity . ' records</span>
+                        </div>';
+        }
+
+        $content .= '
+                        <div class="growth-chart-container">
+                            <div class="chart-header">
+                                <h4>Collection Growth</h4>
+                            </div>
+                            <canvas id="growthChart"></canvas>
+                        </div>
+                    </div>
+                </div>';
+
+        if ($latestRelease) {
+            $content .= '
+                <div class="stat-card latest-addition">
+                    <h3>Latest Addition</h3>
+                    ' . ($latestRelease->coverPath 
+                        ? '<img src="' . htmlspecialchars($latestRelease->getCoverUrl()) . '" 
+                               alt="Latest addition cover" class="latest-cover">' 
+                        : '') . '
+                    <p class="latest-title">' . htmlspecialchars($latestRelease->title) . '</p>
+                    <p class="latest-artist">' . htmlspecialchars($latestRelease->artist) . '</p>
+                    <p class="stat-label">Added ' . date('F j, Y', strtotime($latestRelease->dateAdded)) . '</p>
+                </div>';
+        }
+
+        $content .= '
+            </div>';
+
+        if (!empty($topArtists)) {
+            $content .= '
+            <div class="top-artists-section">
+                <h3>Top Artists</h3>
+                <div class="artist-list">';
+                
+            foreach ($topArtists as $artist) {
+                $content .= '
+                    <div class="artist-item">
+                        <span class="artist-name"><a href="?action=list&q=' . urlencode($artist['artist']) . '">' . htmlspecialchars($artist['artist']) . '</a></span>
+                        <span class="artist-count">' . number_format($artist['count']) . ' records</span>
+                    </div>';
+            }
+            
+            $content .= '
+                </div>
+            </div>';
+        }
+
+        $content .= '
+            <div class="action-buttons">
+                <a href="?action=search" class="button">Search Discogs</a>
+                <a href="?action=list" class="button">View Collection</a>
+                <a href="?action=import" class="button">Import Collection</a>
+            </div>
+        </div>';
+
+        // Add Chart.js implementation
+        $content .= '
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const ctx = document.getElementById("growthChart").getContext("2d");
+            ctx.canvas.style.height = "80px";
+            new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: ' . json_encode($growthLabels) . ',
+                    datasets: [{
+                        label: "Records Added",
+                        data: ' . json_encode($growthData) . ',
+                        borderColor: "rgba(26, 115, 232, 0.8)",
+                        backgroundColor: "rgba(26, 115, 232, 0.1)",
+                        fill: true,
+                        borderWidth: 1.5,
+                        pointRadius: 2,
+                        pointHoverRadius: 4,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    aspectRatio: 5,
+                    layout: {
+                        padding: {
+                            left: 0,
+                            right: 4,
+                            top: 4,
+                            bottom: 0
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: true,
+                            mode: "index",
+                            intersect: false,
+                            padding: 8,
+                            backgroundColor: "rgba(255, 255, 255, 0.95)",
+                            titleColor: "#333",
+                            bodyColor: "#666",
+                            borderColor: "rgba(0, 0, 0, 0.1)",
+                            borderWidth: 1,
+                            titleFont: {
+                                size: 12,
+                                weight: "600",
+                                family: "-apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, \'Helvetica Neue\', Arial, sans-serif"
+                            },
+                            bodyFont: {
+                                size: 11,
+                                family: "-apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, \'Helvetica Neue\', Arial, sans-serif"
+                            },
+                            callbacks: {
+                                title: function(context) {
+                                    return context[0].label;
+                                },
+                                label: function(context) {
+                                    return context.parsed.y + " records";
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            border: {
+                                display: false
+                            },
+                            ticks: {
+                                maxRotation: 0,
+                                autoSkip: true,
+                                maxTicksLimit: 6,
+                                padding: 8,
+                                font: {
+                                    size: 10,
+                                    family: "-apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, \'Helvetica Neue\', Arial, sans-serif"
+                                }
+                            }
+                        },
+                        y: {
+                            display: false,  // This hides the Y axis completely
+                            beginAtZero: true,
+                            grid: {
+                                display: false
+                            },
+                            border: {
+                                display: false
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: "nearest",
+                        axis: "x",
+                        intersect: false
+                    }
+                }
+            });
+        });
+        </script>';
+    }
+}
 
 require __DIR__ . '/layout.php';
