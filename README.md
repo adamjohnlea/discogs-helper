@@ -47,6 +47,15 @@
             <li>Cover art selection</li>
             <li>One-click adding from wantlist to collection</li>
             <li>Dashboard with collection statistics and growth visualization</li>
+            <li>Static page generation
+                <ul>
+                    <li>Generate static HTML versions of your collection</li>
+                    <li>Offline-capable collection browsing</li>
+                    <li>Individual release detail pages</li>
+                    <li>Responsive design for all devices</li>
+                    <li>No database or PHP required for viewing</li>
+                </ul>
+            </li>
         </ul>
     </li>
     <li>Wantlist Management
@@ -235,6 +244,15 @@ chmod -R 755 logs</code></pre>
 
 <h2>Recent Updates</h2>
 <ul>
+    <li>Added static page generation:
+        <ul>
+            <li>Generate static HTML versions of collections</li>
+            <li>Offline-capable browsing experience</li>
+            <li>Individual release detail pages</li>
+            <li>Responsive design for all screen sizes</li>
+            <li>No server-side requirements for viewing</li>
+        </ul>
+    </li>
     <li>Enhanced dashboard visualization:
         <ul>
             <li>Added streamlined collection growth chart</li>
