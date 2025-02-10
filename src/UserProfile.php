@@ -12,7 +12,7 @@ final class UserProfile
     private const int MAX_LOCATION_LENGTH = 100;
     private const int MAX_DISCOGS_USERNAME_LENGTH = 50;
     private const int MIN_DISCOGS_USERNAME_LENGTH = 2;
-    private const int MIN_API_KEY_LENGTH = 10; // Typical Discogs API key minimum
+    private const int MIN_API_KEY_LENGTH = 10; // Typical API key minimum
 
     public function __construct(
         public readonly int $id,
@@ -23,6 +23,8 @@ final class UserProfile
         public readonly ?string $discogsConsumerSecret,
         public readonly ?string $discogsOAuthToken,
         public readonly ?string $discogsOAuthTokenSecret,
+        public readonly ?string $lastfmApiKey,
+        public readonly ?string $lastfmApiSecret,
         public readonly string $createdAt,
         public readonly string $updatedAt,
     ) {
@@ -38,6 +40,10 @@ final class UserProfile
         if ($discogsConsumerKey !== null || $discogsConsumerSecret !== null) {
             $this->validateDiscogsCredentials($discogsConsumerKey, $discogsConsumerSecret);
         }
+
+        if ($lastfmApiKey !== null || $lastfmApiSecret !== null) {
+            $this->validateLastFmCredentials($lastfmApiKey, $lastfmApiSecret);
+        }
     }
 
     public static function create(
@@ -48,6 +54,8 @@ final class UserProfile
         ?string $discogsConsumerSecret = null,
         ?string $discogsOAuthToken = null,
         ?string $discogsOAuthTokenSecret = null,
+        ?string $lastfmApiKey = null,
+        ?string $lastfmApiSecret = null,
     ): self {
         // Perform validations before creating
         $instance = new self(
@@ -59,6 +67,8 @@ final class UserProfile
             discogsConsumerSecret: $discogsConsumerSecret,
             discogsOAuthToken: $discogsOAuthToken,
             discogsOAuthTokenSecret: $discogsOAuthTokenSecret,
+            lastfmApiKey: $lastfmApiKey,
+            lastfmApiSecret: $lastfmApiSecret,
             createdAt: date('Y-m-d H:i:s'),
             updatedAt: date('Y-m-d H:i:s')
         );
@@ -79,12 +89,20 @@ final class UserProfile
             $this->discogsOAuthTokenSecret !== null;
     }
 
+    public function hasLastFmCredentials(): bool
+    {
+        return $this->lastfmApiKey !== null &&
+            $this->lastfmApiSecret !== null;
+    }
+
     public function withUpdatedCredentials(
         ?string $discogsUsername = null,
         ?string $discogsConsumerKey = null,
         ?string $discogsConsumerSecret = null,
         ?string $discogsOAuthToken = null,
         ?string $discogsOAuthTokenSecret = null,
+        ?string $lastfmApiKey = null,
+        ?string $lastfmApiSecret = null,
     ): self {
         return new self(
             id: $this->id,
@@ -95,6 +113,8 @@ final class UserProfile
             discogsConsumerSecret: $discogsConsumerSecret ?? $this->discogsConsumerSecret,
             discogsOAuthToken: $discogsOAuthToken ?? $this->discogsOAuthToken,
             discogsOAuthTokenSecret: $discogsOAuthTokenSecret ?? $this->discogsOAuthTokenSecret,
+            lastfmApiKey: $lastfmApiKey ?? $this->lastfmApiKey,
+            lastfmApiSecret: $lastfmApiSecret ?? $this->lastfmApiSecret,
             createdAt: $this->createdAt,
             updatedAt: date('Y-m-d H:i:s')
         );
@@ -167,6 +187,36 @@ final class UserProfile
             // Basic format check for API secrets (typically alphanumeric)
             if (!preg_match('/^[a-zA-Z0-9]+$/', $secret)) {
                 throw new RuntimeException('Discogs Consumer Secret contains invalid characters');
+            }
+        }
+    }
+
+    private function validateLastFmCredentials(?string $key, ?string $secret): void
+    {
+        // Both must be provided together
+        if (($key === null && $secret !== null) || ($key !== null && $secret === null)) {
+            throw new RuntimeException('Both Last.fm API Key and Secret must be provided together');
+        }
+
+        if ($key !== null) {
+            if (strlen($key) < self::MIN_API_KEY_LENGTH) {
+                throw new RuntimeException('Last.fm API Key appears to be invalid');
+            }
+
+            // Basic format check for API keys (typically alphanumeric)
+            if (!preg_match('/^[a-zA-Z0-9]+$/', $key)) {
+                throw new RuntimeException('Last.fm API Key contains invalid characters');
+            }
+        }
+
+        if ($secret !== null) {
+            if (strlen($secret) < self::MIN_API_KEY_LENGTH) {
+                throw new RuntimeException('Last.fm API Secret appears to be invalid');
+            }
+
+            // Basic format check for API secrets (typically alphanumeric)
+            if (!preg_match('/^[a-zA-Z0-9]+$/', $secret)) {
+                throw new RuntimeException('Last.fm API Secret contains invalid characters');
             }
         }
     }

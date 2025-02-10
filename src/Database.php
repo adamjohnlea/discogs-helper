@@ -236,11 +236,13 @@ final class Database
                 user_id, location, discogs_username,
                 discogs_consumer_key, discogs_consumer_secret,
                 discogs_oauth_token, discogs_oauth_token_secret,
+                lastfm_api_key, lastfm_api_secret,
                 created_at, updated_at
             ) VALUES (
                 :user_id, :location, :discogs_username,
                 :discogs_consumer_key, :discogs_consumer_secret,
                 :discogs_oauth_token, :discogs_oauth_token_secret,
+                :lastfm_api_key, :lastfm_api_secret,
                 :created_at, :updated_at
             )
         ');
@@ -253,6 +255,8 @@ final class Database
             'discogs_consumer_secret' => $profile->discogsConsumerSecret,
             'discogs_oauth_token' => $profile->discogsOAuthToken,
             'discogs_oauth_token_secret' => $profile->discogsOAuthTokenSecret,
+            'lastfm_api_key' => $profile->lastfmApiKey,
+            'lastfm_api_secret' => $profile->lastfmApiSecret,
             'created_at' => $profile->createdAt,
             'updated_at' => $profile->updatedAt
         ]);
@@ -280,6 +284,8 @@ final class Database
             discogsConsumerSecret: $row['discogs_consumer_secret'],
             discogsOAuthToken: $row['discogs_oauth_token'],
             discogsOAuthTokenSecret: $row['discogs_oauth_token_secret'],
+            lastfmApiKey: $row['lastfm_api_key'],
+            lastfmApiSecret: $row['lastfm_api_secret'],
             createdAt: $row['created_at'],
             updatedAt: $row['updated_at']
         );
@@ -295,6 +301,8 @@ final class Database
                 discogs_consumer_secret = :discogs_consumer_secret,
                 discogs_oauth_token = :discogs_oauth_token,
                 discogs_oauth_token_secret = :discogs_oauth_token_secret,
+                lastfm_api_key = :lastfm_api_key,
+                lastfm_api_secret = :lastfm_api_secret,
                 updated_at = :updated_at
             WHERE user_id = :user_id
         ');
@@ -307,6 +315,8 @@ final class Database
             'discogs_consumer_secret' => $profile->discogsConsumerSecret,
             'discogs_oauth_token' => $profile->discogsOAuthToken,
             'discogs_oauth_token_secret' => $profile->discogsOAuthTokenSecret,
+            'lastfm_api_key' => $profile->lastfmApiKey,
+            'lastfm_api_secret' => $profile->lastfmApiSecret,
             'updated_at' => $profile->updatedAt
         ]);
     }
@@ -333,6 +343,8 @@ final class Database
             discogsConsumerSecret: $row['discogs_consumer_secret'],
             discogsOAuthToken: $row['discogs_oauth_token'],
             discogsOAuthTokenSecret: $row['discogs_oauth_token_secret'],
+            lastfmApiKey: $row['lastfm_api_key'],
+            lastfmApiSecret: $row['lastfm_api_secret'],
             createdAt: $row['created_at'],
             updatedAt: $row['updated_at']
         );
@@ -1005,8 +1017,15 @@ final class Database
             discogsConsumerSecret: $row['discogs_consumer_secret'],
             discogsOAuthToken: $row['discogs_oauth_token'],
             discogsOAuthTokenSecret: $row['discogs_oauth_token_secret'],
+            lastfmApiKey: $row['lastfm_api_key'],
+            lastfmApiSecret: $row['lastfm_api_secret'],
             createdAt: $row['created_at'],
             updatedAt: $row['updated_at']
         );
+    }
+
+    public function getPdo(): PDO
+    {
+        return $this->pdo;
     }
 }

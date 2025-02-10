@@ -61,25 +61,18 @@
             display: flex;
             align-items: center;
             gap: 2rem;
-            height: 100%;
         }
 
         nav {
             display: flex;
             align-items: center;
-            height: 100%;
-            gap: 0.5rem;
+            gap: 2rem;
         }
 
         nav a {
-            height: 100%;
-            display: flex;
-            align-items: center;
-            padding: 0 1rem;
             color: #555;
             text-decoration: none;
             font-weight: 500;
-            position: relative;
         }
 
         nav a:hover {
@@ -88,16 +81,6 @@
 
         nav a.active {
             color: #1a73e8;
-        }
-
-        nav a.active::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: #1a73e8;
         }
 
         /* User area */
@@ -184,19 +167,16 @@
             nav {
                 flex-direction: column;
                 width: 100%;
-                height: auto;
-                gap: 0;
+                gap: 0.5rem;
             }
 
             nav a {
-                width: 100%;
-                padding: 1rem;
-                border-bottom: 1px solid rgba(0,0,0,0.1);
-                justify-content: center;
+                padding: 0.5rem;
+                text-align: center;
             }
 
-            nav a.active::after {
-                display: none;
+            nav a.active {
+                background: rgba(26, 115, 232, 0.1);
             }
 
             .header-search {
@@ -392,6 +372,7 @@
                         <a href="?action=list" <?= (isset($_GET['action']) && $_GET['action'] === 'list') ? 'class="active"' : '' ?>>My Collection</a>
                         <a href="?action=import" <?= (isset($_GET['action']) && $_GET['action'] === 'import') ? 'class="active"' : '' ?>>Import Collection</a>
                         <a href="?action=wantlist" <?= (isset($_GET['action']) && $_GET['action'] === 'wantlist') ? 'class="active"' : '' ?>>Want List</a>
+                        <a href="?action=recommendations" <?= (isset($_GET['action']) && $_GET['action'] === 'recommendations') ? 'class="active"' : '' ?>>Recommendations</a>
                         <a href="?action=profile" <?= (isset($_GET['action']) && $_GET['action'] === 'profile') ? 'class="active"' : '' ?>>Profile</a>   
                     <?php endif; ?>
                 </nav>

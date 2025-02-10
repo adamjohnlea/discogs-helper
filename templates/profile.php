@@ -59,6 +59,22 @@ if ($profile?->hasDiscogsCredentials()) {
 $content .= '
             </div>
         </section>
+
+        <section class="profile-section">
+            <h2>Last.fm Integration</h2>
+            <div class="profile-details">';
+
+if ($profile?->lastfmApiKey && $profile?->lastfmApiSecret) {
+    $content .= '
+                <p><strong>Last.fm API:</strong> Configured</p>';
+} else {
+    $content .= '
+                <p class="notice">Last.fm integration not configured. Music recommendations will be limited.</p>';
+}
+
+$content .= '
+            </div>
+        </section>
     </div>
 
     <div class="profile-actions">

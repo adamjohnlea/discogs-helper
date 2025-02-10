@@ -117,6 +117,21 @@ $content .= '
         </section>
 
         <section class="form-section">
+            <h2>Last.fm Integration</h2>
+            
+            <div class="form-group">
+                <label for="lastfm_api_key">Last.fm API Key</label>
+                <input type="text" id="lastfm_api_key" name="lastfm_api_key" value="' . htmlspecialchars($profile?->lastfmApiKey ?? '') . '">
+                <small>Get your API credentials from <a href="https://www.last.fm/api/account/create" target="_blank">Last.fm API Account Creation</a>.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="lastfm_api_secret">Last.fm API Secret</label>
+                <input type="text" id="lastfm_api_secret" name="lastfm_api_secret" value="' . htmlspecialchars($profile?->lastfmApiSecret ?? '') . '">
+            </div>
+        </section>
+
+        <section class="form-section">
             <h2>Change Password</h2>
             
             <div class="form-group">

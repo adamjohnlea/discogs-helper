@@ -16,6 +16,8 @@ use DiscogsHelper\Exceptions\DiscogsCredentialsException;
 use DiscogsHelper\Exceptions\DuplicateDiscogsUsernameException;
 use DiscogsHelper\Security\Csrf;
 use DiscogsHelper\Controllers\ReleaseController;
+use DiscogsHelper\Services\LastFmService;
+use DiscogsHelper\Controllers\RecommendationsController;
 
 // Initialize logger and session
 Logger::initialize(__DIR__ . '/..');
@@ -137,7 +139,7 @@ $protected_routes = [
     'search', 'list', 'import', 'view', 'preview', 'add', 
     'process-edit', 'process-edit-details', 'wantlist', 
     'sync_wantlist', 'view_wantlist', 'process-wantlist-notes', 
-    'remove_wantlist', 'remove_collection',
+    'remove_wantlist', 'remove_collection', 'recommendations',
     'process_import', 'resume_import', 'check_import_progress'
 ];
 if (in_array($action, $protected_routes) && !$auth->isLoggedIn()) {
@@ -223,6 +225,14 @@ function handleProfileUpdate(Auth $auth, Database $db): void
         }
     }
 
+    // Validate Last.fm credentials if provided
+    if (!empty($_POST['lastfm_api_key']) || !empty($_POST['lastfm_api_secret'])) {
+        // Both key and secret must be provided together
+        if (empty($_POST['lastfm_api_key']) || empty($_POST['lastfm_api_secret'])) {
+            $errors[] = 'Both Last.fm API Key and API Secret must be provided';
+        }
+    }
+
     // Validate password change if attempted
     $passwordChanged = false;
     if (!empty($_POST['new_password']) || !empty($_POST['confirm_password'])) {
@@ -252,6 +262,8 @@ function handleProfileUpdate(Auth $auth, Database $db): void
             $location = !empty($_POST['location']) ? trim($_POST['location']) : null;
             $consumerKey = !empty($_POST['discogs_consumer_key']) ? trim($_POST['discogs_consumer_key']) : null;
             $consumerSecret = !empty($_POST['discogs_consumer_secret']) ? trim($_POST['discogs_consumer_secret']) : null;
+            $lastfmApiKey = !empty($_POST['lastfm_api_key']) ? trim($_POST['lastfm_api_key']) : null;
+            $lastfmApiSecret = !empty($_POST['lastfm_api_secret']) ? trim($_POST['lastfm_api_secret']) : null;
 
             // Create updated profile with new values
             $updatedProfile = new UserProfile(
@@ -263,6 +275,8 @@ function handleProfileUpdate(Auth $auth, Database $db): void
                 discogsConsumerSecret: $consumerSecret,
                 discogsOAuthToken: $updatedProfile->discogsOAuthToken,
                 discogsOAuthTokenSecret: $updatedProfile->discogsOAuthTokenSecret,
+                lastfmApiKey: $lastfmApiKey,
+                lastfmApiSecret: $lastfmApiSecret,
                 createdAt: $updatedProfile->createdAt,
                 updatedAt: date('Y-m-d H:i:s')
             );
@@ -318,6 +332,34 @@ match ($action) {
     'add' => (function() use ($auth, $db, $discogs) {
         $releaseController = new ReleaseController($auth, $db, $discogs);
         return $releaseController->processAdd();
+    })(),
+    'recommendations' => (function() use ($auth, $db) {
+        $userId = $auth->getCurrentUser()->id;
+        $profile = $db->getUserProfile($userId);
+        
+        if (!$profile || !$profile->hasLastFmCredentials()) {
+            Session::setMessage('Please set up your Last.fm API credentials in your profile first.');
+            header('Location: ?action=profile_edit');
+            exit;
+        }
+
+        // Check if regenerating
+        $regenerate = isset($_GET['regenerate']) && $_GET['regenerate'] === '1';
+        if ($regenerate) {
+            Csrf::validateOrFail($_GET['csrf_token'] ?? null);
+        }
+
+        $lastfm = new LastFmService($db, $userId);
+        $recommendationsController = new RecommendationsController($auth, $db, $lastfm);
+        $recommendations = $recommendationsController->getRecommendations($regenerate);
+        
+        if ($regenerate) {
+            Session::setMessage('Recommendations have been regenerated.');
+            header('Location: ?action=recommendations');
+            exit;
+        }
+        
+        require __DIR__ . '/../templates/recommendations.php';
     })(),
     'generate_static' => (function() use ($auth, $db) {
         requireAuth();
