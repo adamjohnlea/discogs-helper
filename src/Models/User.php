@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DiscogsHelper;
+namespace DiscogsHelper\Models;
 
 final class User
 {

@@ -8,8 +8,8 @@ use PDO;
 use Exception;
 use RuntimeException;
 use PDOException;
-use DiscogsHelper\Release;
-use DiscogsHelper\UserProfile;
+use DiscogsHelper\Models\Release;
+use DiscogsHelper\Models\UserProfile;
 use DiscogsHelper\Exceptions\DuplicateReleaseException;
 use DiscogsHelper\Exceptions\DuplicateDiscogsUsernameException;
 

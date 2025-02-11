@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace DiscogsHelper;
+namespace DiscogsHelper\Services\Discogs;
 
 use DiscogsHelper\Exceptions\DiscogsCredentialsException;
+use DiscogsHelper\Logger;
 use GuzzleHttp\Client;
 use RuntimeException;
 use GuzzleHttp\Exception\ClientException;

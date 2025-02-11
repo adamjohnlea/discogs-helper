@@ -6,6 +6,7 @@ namespace DiscogsHelper;
 
 use DiscogsHelper\Exceptions\RateLimitExceededException;
 use DiscogsHelper\Security\RateLimiter;
+use DiscogsHelper\Models\User;
 use RuntimeException;
 
 final class Auth
