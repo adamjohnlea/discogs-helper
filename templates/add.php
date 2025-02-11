@@ -6,7 +6,7 @@
 /** @var string|null $styles Page-specific styles */
 
 use DiscogsHelper\Security\Auth;
-use DiscogsHelper\Database;
+use DiscogsHelper\Database\Database;
 use DiscogsHelper\Services\Discogs\DiscogsService;
 use DiscogsHelper\Http\Session;
 use DiscogsHelper\Security\Csrf;

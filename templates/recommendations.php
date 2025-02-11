@@ -7,7 +7,7 @@
 /** @var array $recommendations Artist recommendations */
 
 use DiscogsHelper\Security\Auth;
-use DiscogsHelper\Database;
+use DiscogsHelper\Database\Database;
 use DiscogsHelper\Services\LastFmService;
 use DiscogsHelper\Logging\Logger;
 use DiscogsHelper\Http\Session;

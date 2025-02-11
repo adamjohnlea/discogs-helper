@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 /** @var Auth $auth Authentication instance */
-/** @var Database $db Database instance */
+/** @var Database\Database $db Database instance */
 /** @var string|null $content Main content HTML */
 /** @var string|null $styles Page-specific styles */
 
 use DiscogsHelper\Security\Auth;
-use DiscogsHelper\Database;
+use DiscogsHelper\Database\Database;
 use DiscogsHelper\Logging\Logger;
 use DiscogsHelper\Security\Csrf;
 use DiscogsHelper\Http\Session;

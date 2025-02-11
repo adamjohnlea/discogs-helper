@@ -7,7 +7,7 @@
 /** @var int|null $id Release ID */
 
 use DiscogsHelper\Security\Auth;
-use DiscogsHelper\Database;
+use DiscogsHelper\Database\Database;
 use DiscogsHelper\Services\Discogs\DiscogsService;
 use DiscogsHelper\Logging\Logger;
 use DiscogsHelper\Security\Csrf;

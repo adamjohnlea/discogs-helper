@@ -14,7 +14,7 @@ use DiscogsHelper\Exceptions\DuplicateReleaseException;
 use DiscogsHelper\Exceptions\DuplicateDiscogsUsernameException;
 use DiscogsHelper\Logging\Logger;
 use DiscogsHelper\Security\Auth;
-use DiscogsHelper\StaticCollectionGenerator;
+use DiscogsHelper\Generator\StaticCollectionGenerator;
 
 final class Database
 {

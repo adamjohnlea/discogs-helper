@@ -5,7 +5,7 @@
 /** @var string|null $styles Page-specific styles */
 
 use DiscogsHelper\Security\Auth;
-use DiscogsHelper\Database;
+use DiscogsHelper\Database\Database;
 
 // Initialize styles variable
 $styles = '<style>

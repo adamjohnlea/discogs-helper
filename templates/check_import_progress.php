@@ -3,7 +3,7 @@
 /** @var Database $db Database instance */
 
 use DiscogsHelper\Security\Auth;
-use DiscogsHelper\Database;
+use DiscogsHelper\Database\Database;
 use DiscogsHelper\Logging\Logger;
 
 header('Content-Type: application/json');

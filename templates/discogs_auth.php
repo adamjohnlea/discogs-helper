@@ -8,7 +8,7 @@ declare(strict_types=1);
 /** @var string|null $styles Page-specific styles */
 
 use DiscogsHelper\Security\Auth;
-use DiscogsHelper\Database;
+use DiscogsHelper\Database\Database;
 use DiscogsHelper\Services\Discogs\DiscogsOAuth;
 use DiscogsHelper\Logging\Logger;
 use DiscogsHelper\Http\Session;

@@ -3,7 +3,7 @@
 /** @var Database $db Database instance */
 
 use DiscogsHelper\Security\Auth;
-use DiscogsHelper\Database;
+use DiscogsHelper\Database\Database;
 use DiscogsHelper\Security\Csrf;
 
 // Ensure user is logged in

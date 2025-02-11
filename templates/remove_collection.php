@@ -7,7 +7,7 @@ declare(strict_types=1);
 /** @var DiscogsHelper\Services\Discogs\DiscogsService $discogs Discogs service instance */
 
 use DiscogsHelper\Security\Auth;
-use DiscogsHelper\Database;
+use DiscogsHelper\Database\Database;
 use DiscogsHelper\Services\Discogs\DiscogsService;
 use DiscogsHelper\Security\Csrf;
 use DiscogsHelper\Logging\Logger;
