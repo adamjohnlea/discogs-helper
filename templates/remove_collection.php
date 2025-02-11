@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-/** @var DiscogsHelper\Auth $auth Authentication instance */
-/** @var DiscogsHelper\Database $db Database instance */
+/** @var DiscogsHelper\Security\Auth $auth Authentication instance */
+/** @var DiscogsHelper\Database\Database $db Database instance */
 /** @var DiscogsHelper\Services\Discogs\DiscogsService $discogs Discogs service instance */
 
 use DiscogsHelper\Security\Auth;

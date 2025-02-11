@@ -1,6 +1,6 @@
 <?php
-/** @var DiscogsHelper\Auth $auth Authentication instance */
-/** @var DiscogsHelper\Database $db Database instance */
+/** @var DiscogsHelper\Security\Auth $auth Authentication instance */
+/** @var DiscogsHelper\Database\Database $db Database instance */
 /** @var DiscogsHelper\Services\Discogs\DiscogsService $discogs Discogs service instance */
 /** @var string|null $content Main content HTML */
 /** @var string|null $styles Page-specific styles */
