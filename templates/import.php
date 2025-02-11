@@ -8,11 +8,11 @@
 /** @var array|null $progress Import progress data */
 /** @var string|null $error Error message */
 
-use DiscogsHelper\Auth;
+use DiscogsHelper\Security\Auth;
 use DiscogsHelper\Database;
-use DiscogsHelper\DiscogsService;
-use DiscogsHelper\Logger;
-use DiscogsHelper\Session;
+use DiscogsHelper\Services\Discogs\DiscogsService;
+use DiscogsHelper\Logging\Logger;
+use DiscogsHelper\Http\Session;
 use DiscogsHelper\Security\Csrf;
 use GuzzleHttp\Exception\GuzzleException;
 
@@ -29,6 +29,13 @@ $profile = $db->getUserProfile($userId);
 if (!$profile || !$profile->discogsUsername) {
     Session::setMessage('Please set your Discogs username in your profile first.');
     header('Location: ?action=profile_edit');
+    exit;
+}
+
+// Check for OAuth tokens
+if (!$profile->hasDiscogsOAuth()) {
+    Session::setMessage('Please connect your Discogs account first.');
+    header('Location: ?action=discogs_auth');
     exit;
 }
 

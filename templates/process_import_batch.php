@@ -3,11 +3,11 @@
 /** @var Database $db Database instance */
 /** @var DiscogsService $discogs Discogs service instance */
 
-use DiscogsHelper\Auth;
+use DiscogsHelper\Security\Auth;
 use DiscogsHelper\Database;
-use DiscogsHelper\DiscogsService;
-use DiscogsHelper\Logger;
-use DiscogsHelper\Session;
+use DiscogsHelper\Services\Discogs\DiscogsService;
+use DiscogsHelper\Logging\Logger;
+use DiscogsHelper\Http\Session;
 use DiscogsHelper\Exceptions\RateLimitExceededException;
 
 // At the very top of the file, before any output

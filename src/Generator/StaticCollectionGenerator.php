@@ -2,13 +2,17 @@
 
 declare(strict_types=1);
 
-namespace DiscogsHelper;
+namespace DiscogsHelper\Generator;
 
+use DiscogsHelper\Database\Database;
+use DiscogsHelper\Security\Auth;
+use DiscogsHelper\Logging\Logger;
+use DiscogsHelper\Models\Release;
 use RuntimeException;
 
 class StaticCollectionGenerator
 {
-    private const COLLECTIONS_DIR = __DIR__ . '/../public/collections';
+    private const COLLECTIONS_DIR = __DIR__ . '/../../public/collections';
     private const ASSETS_DIR = self::COLLECTIONS_DIR . '/assets';
 
     public function __construct(
@@ -172,7 +176,7 @@ class StaticCollectionGenerator
     {
         ob_start();
         extract($data);
-        require __DIR__ . '/../templates/static/collection.php';
+        require __DIR__ . '/../../templates/static/collection.php';
         return ob_get_clean();
     }
 
@@ -183,7 +187,7 @@ class StaticCollectionGenerator
     {
         ob_start();
         extract($data);
-        require __DIR__ . '/../templates/static/release.php';
+        require __DIR__ . '/../../templates/static/release.php';
         return ob_get_clean();
     }
 } 

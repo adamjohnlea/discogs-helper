@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace DiscogsHelper\Services\Discogs;
 
 use DiscogsHelper\Exceptions\DiscogsCredentialsException;
-use DiscogsHelper\Logger;
+use DiscogsHelper\Logging\Logger;
 use GuzzleHttp\Client;
 use RuntimeException;
 use GuzzleHttp\Exception\ClientException;
@@ -167,8 +167,16 @@ final class DiscogsService
             $extension = pathinfo($originalFilename, PATHINFO_EXTENSION) ?: 'jpg';
             $filename = $uniqueId . '.' . $extension;
             
+            // Use project root path
+            $projectRoot = dirname(__DIR__, 3); // Go up 3 levels from src/Services/Discogs
             $tempPath = sys_get_temp_dir() . '/' . $filename;
-            $savePath = __DIR__ . '/../public/images/covers/' . $filename;
+            $savePath = $projectRoot . '/public/images/covers/' . $filename;
+            
+            // Ensure the covers directory exists
+            $coversDir = dirname($savePath);
+            if (!is_dir($coversDir)) {
+                mkdir($coversDir, 0755, true);
+            }
             
             // Save original to temp file
             file_put_contents($tempPath, $response->getBody()->getContents());

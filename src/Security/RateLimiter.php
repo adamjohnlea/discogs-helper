@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace DiscogsHelper\Security;
 
 use DiscogsHelper\Exceptions\RateLimitExceededException;
-use DiscogsHelper\Logger;
-use DiscogsHelper\Session;
+use DiscogsHelper\Logging\Logger;
+use DiscogsHelper\Http\Session;
 
 final class RateLimiter
 {

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use DiscogsHelper\Logger;
-use DiscogsHelper\Session;
-use DiscogsHelper\Database;
-use DiscogsHelper\DatabaseSetup;
+use DiscogsHelper\Logging\Logger;
+use DiscogsHelper\Http\Session;
+use DiscogsHelper\Database\Database;
+use DiscogsHelper\Database\DatabaseSetup;
 use DiscogsHelper\Services\Discogs\DiscogsService;
-use DiscogsHelper\Auth;
+use DiscogsHelper\Security\Auth;
 use DiscogsHelper\Models\UserProfile;
-use DiscogsHelper\StaticCollectionGenerator;
+use DiscogsHelper\Generator\StaticCollectionGenerator;
 use DiscogsHelper\Exceptions\DiscogsCredentialsException;
 use DiscogsHelper\Exceptions\DuplicateDiscogsUsernameException;
 use DiscogsHelper\Security\Csrf;
@@ -162,29 +162,42 @@ if (in_array($action, $protected_routes) && !$auth->isLoggedIn()) {
 }
 
 // Function to create DiscogsService instance for authenticated user
-function createDiscogsService(Auth $auth, Database $db): ?DiscogsService {
+function createDiscogsService(Auth $auth, Database $db): ?DiscogsHelper\Services\Discogs\DiscogsService {
     if (!$auth->isLoggedIn()) {
+        Logger::error('Discogs service not available: User not logged in');
         return null;
     }
 
     $userId = $auth->getCurrentUser()->id;
     $profile = $db->getUserProfile($userId);
 
+    Logger::log('Creating Discogs service with profile data: ' . json_encode([
+        'has_profile' => $profile !== null,
+        'has_consumer_key' => !empty($profile?->discogsConsumerKey),
+        'has_consumer_secret' => !empty($profile?->discogsConsumerSecret),
+        'has_oauth_token' => !empty($profile?->discogsOAuthToken),
+        'has_oauth_token_secret' => !empty($profile?->discogsOAuthTokenSecret)
+    ]));
+
     if (!$profile || empty($profile->discogsConsumerKey) || empty($profile->discogsConsumerSecret)) {
+        Logger::error('Discogs service not available: Missing consumer credentials');
         Session::setMessage('Please set up your Discogs credentials in your profile.');
         header('Location: ?action=profile_edit');
         exit;
     }
 
     try {
-        return new DiscogsService(
+        $service = new DiscogsService(
             consumerKey: $profile->discogsConsumerKey,
             consumerSecret: $profile->discogsConsumerSecret,
             userAgent: 'DiscogsHelper/1.0',
             oauthToken: $profile->discogsOAuthToken,
             oauthTokenSecret: $profile->discogsOAuthTokenSecret
         );
+        Logger::log('Successfully created Discogs service');
+        return $service;
     } catch (DiscogsCredentialsException $e) {
+        Logger::error('Discogs service creation failed: ' . $e->getMessage());
         Session::setErrors(['Invalid Discogs credentials. Please check your settings.']);
         header('Location: ?action=profile_edit');
         exit;
@@ -209,7 +222,7 @@ function handleProfileUpdate(Auth $auth, Database $db): void
             $errors[] = 'Both Discogs Consumer Key and Consumer Secret must be provided';
         } else {
             try {
-                $credentialsValid = DiscogsService::validateCredentials(
+                $credentialsValid = DiscogsHelper\Services\Discogs\DiscogsService::validateCredentials(
                     consumerKey: $_POST['discogs_consumer_key'],
                     consumerSecret: $_POST['discogs_consumer_secret'],
                     userAgent: 'DiscogsHelper/1.0'

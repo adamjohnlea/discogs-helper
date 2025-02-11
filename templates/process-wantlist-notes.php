@@ -6,8 +6,8 @@ declare(strict_types=1);
 /** @var Database $db Database instance */
 
 use DiscogsHelper\Security\Csrf;
-use DiscogsHelper\Logger;
-use DiscogsHelper\Session;
+use DiscogsHelper\Logging\Logger;
+use DiscogsHelper\Http\Session;
 
 // Validate CSRF token
 try {

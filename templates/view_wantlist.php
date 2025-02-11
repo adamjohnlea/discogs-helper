@@ -4,8 +4,8 @@
 /** @var DiscogsService $discogs Discogs service instance */
 
 use DiscogsHelper\Security\Csrf;
-use DiscogsHelper\Session;
-use DiscogsHelper\Logger;
+use DiscogsHelper\Http\Session;
+use DiscogsHelper\Logging\Logger;
 
 if (!isset($_GET['id'])) {
     header('Location: ?action=wantlist');

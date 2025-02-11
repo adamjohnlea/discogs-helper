@@ -4,7 +4,7 @@
 /** @var DiscogsService $discogs Discogs service instance */
 
 use DiscogsHelper\Security\Csrf;
-use DiscogsHelper\Session;
+use DiscogsHelper\Http\Session;
 
 // Check if user has valid Discogs credentials
 if (!isset($discogs)) {

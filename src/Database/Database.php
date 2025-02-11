@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DiscogsHelper;
+namespace DiscogsHelper\Database;
 
 use PDO;
 use Exception;
@@ -12,6 +12,9 @@ use DiscogsHelper\Models\Release;
 use DiscogsHelper\Models\UserProfile;
 use DiscogsHelper\Exceptions\DuplicateReleaseException;
 use DiscogsHelper\Exceptions\DuplicateDiscogsUsernameException;
+use DiscogsHelper\Logging\Logger;
+use DiscogsHelper\Security\Auth;
+use DiscogsHelper\StaticCollectionGenerator;
 
 final class Database
 {

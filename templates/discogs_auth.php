@@ -7,11 +7,11 @@ declare(strict_types=1);
 /** @var string|null $content Main content HTML */
 /** @var string|null $styles Page-specific styles */
 
-use DiscogsHelper\Auth;
+use DiscogsHelper\Security\Auth;
 use DiscogsHelper\Database;
-use DiscogsHelper\DiscogsOAuth;
-use DiscogsHelper\Logger;
-use DiscogsHelper\Session;
+use DiscogsHelper\Services\Discogs\DiscogsOAuth;
+use DiscogsHelper\Logging\Logger;
+use DiscogsHelper\Http\Session;
 
 if (!$auth->isLoggedIn()) {
     header('Location: ?action=login');
@@ -51,12 +51,30 @@ if (isset($_GET['oauth_token'], $_GET['oauth_verifier'])) {
             verifier: $_GET['oauth_verifier']
         );
 
+        Logger::log('Received OAuth tokens from Discogs: ' . json_encode([
+            'oauth_token_exists' => !empty($tokens['oauth_token']),
+            'oauth_token_secret_exists' => !empty($tokens['oauth_token_secret'])
+        ]));
+
         // Update user profile with OAuth tokens
         $updatedProfile = $profile->withUpdatedCredentials(
             discogsOAuthToken: $tokens['oauth_token'],
             discogsOAuthTokenSecret: $tokens['oauth_token_secret']
         );
+
+        Logger::log('Updated profile OAuth tokens: ' . json_encode([
+            'oauth_token_exists' => !empty($updatedProfile->discogsOAuthToken),
+            'oauth_token_secret_exists' => !empty($updatedProfile->discogsOAuthTokenSecret)
+        ]));
+
         $db->updateUserProfile($updatedProfile);
+
+        // Verify the update
+        $verifyProfile = $db->getUserProfile($userId);
+        Logger::log('Verified profile OAuth tokens after save: ' . json_encode([
+            'oauth_token_exists' => !empty($verifyProfile->discogsOAuthToken),
+            'oauth_token_secret_exists' => !empty($verifyProfile->discogsOAuthTokenSecret)
+        ]));
 
         // Clean up session
         unset($_SESSION['oauth_token_secret']);

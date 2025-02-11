@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace DiscogsHelper\Services;
 
 use GuzzleHttp\Client;
-use DiscogsHelper\Database;
+use GuzzleHttp\Exception\GuzzleException;
+use DiscogsHelper\Database\Database;
+use DiscogsHelper\Models\Release;
+use Exception;
 
 final class LastFmService
 {

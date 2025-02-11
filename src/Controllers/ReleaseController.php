@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace DiscogsHelper\Controllers;
 
-use DiscogsHelper\Auth;
-use DiscogsHelper\Database;
-use DiscogsHelper\DiscogsService;
+use DiscogsHelper\Security\Auth;
+use DiscogsHelper\Database\Database;
+use DiscogsHelper\Services\Discogs\DiscogsService;
 use DiscogsHelper\Exceptions\DiscogsCredentialsException;
-use DiscogsHelper\Logger;
+use DiscogsHelper\Logging\Logger;
 use Exception;
 
 final class ReleaseController

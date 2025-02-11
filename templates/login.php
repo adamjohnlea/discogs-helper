@@ -5,8 +5,8 @@
 /** @var string|null $error Error message if authentication failed */
 /** @var string|null $auth_message Authentication message from session */
 
-use DiscogsHelper\Auth;
-use DiscogsHelper\Logger;
+use DiscogsHelper\Security\Auth;
+use DiscogsHelper\Logging\Logger;
 use DiscogsHelper\Security\Csrf;
 
 $auth_message = $auth_message ?? null;

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace DiscogsHelper\Security;
 
 use DiscogsHelper\Exceptions\SecurityException;
-use DiscogsHelper\Session;
+use DiscogsHelper\Http\Session;
 
 final class Csrf
 {

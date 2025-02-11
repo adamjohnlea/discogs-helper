@@ -2,9 +2,9 @@
 /** @var Auth $auth Authentication instance */
 /** @var Database $db Database instance */
 
-use DiscogsHelper\Auth;
+use DiscogsHelper\Security\Auth;
 use DiscogsHelper\Database;
-use DiscogsHelper\Logger;
+use DiscogsHelper\Logging\Logger;
 
 header('Content-Type: application/json');
 

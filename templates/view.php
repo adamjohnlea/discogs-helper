@@ -5,10 +5,10 @@
 /** @var string|null $styles Page-specific styles */
 /** @var int|null $id Release ID */
 
-use DiscogsHelper\Auth;
+use DiscogsHelper\Security\Auth;
 use DiscogsHelper\Database;
 use DiscogsHelper\Security\Csrf;
-use DiscogsHelper\Logger;
+use DiscogsHelper\Logging\Logger;
 
 if (!$auth->isLoggedIn()) {
     header('Location: ?action=login');

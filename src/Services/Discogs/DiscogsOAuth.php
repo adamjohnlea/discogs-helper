@@ -7,7 +7,7 @@ namespace DiscogsHelper\Services\Discogs;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use RuntimeException;
-use DiscogsHelper\Logger;
+use DiscogsHelper\Logging\Logger;
 
 final class DiscogsOAuth
 {

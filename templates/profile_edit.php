@@ -4,11 +4,11 @@
 /** @var string|null $content Main content HTML */
 /** @var string|null $styles Page-specific styles */
 
-use DiscogsHelper\Auth;
+use DiscogsHelper\Security\Auth;
 use DiscogsHelper\Database;
-use DiscogsHelper\Logger;
+use DiscogsHelper\Logging\Logger;
 use DiscogsHelper\Security\Csrf;
-use DiscogsHelper\Session;
+use DiscogsHelper\Http\Session;
 
 if (!$auth->isLoggedIn()) {
     header('Location: ?action=login');

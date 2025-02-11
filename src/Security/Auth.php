@@ -2,11 +2,14 @@
 // src/Auth.php
 declare(strict_types=1);
 
-namespace DiscogsHelper;
+namespace DiscogsHelper\Security;
 
 use DiscogsHelper\Exceptions\RateLimitExceededException;
 use DiscogsHelper\Security\RateLimiter;
 use DiscogsHelper\Models\User;
+use DiscogsHelper\Database\Database;
+use DiscogsHelper\Http\Session;
+use DiscogsHelper\Logging\Logger;
 use RuntimeException;
 
 final class Auth

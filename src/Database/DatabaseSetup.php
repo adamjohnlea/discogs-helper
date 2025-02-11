@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
-namespace DiscogsHelper;
+namespace DiscogsHelper\Database;
 
 use PDO;
+use PDOException;
 use RuntimeException;
+use DiscogsHelper\Logging\Logger;
 use DiscogsHelper\Database\MigrationRunner;
 
 final class DatabaseSetup

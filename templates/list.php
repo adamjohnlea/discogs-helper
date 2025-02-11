@@ -4,10 +4,10 @@
 /** @var string|null $content Main content HTML */
 /** @var string|null $styles Page-specific styles */
 
-use DiscogsHelper\Auth;
+use DiscogsHelper\Security\Auth;
 use DiscogsHelper\Database;
 use DiscogsHelper\Security\Csrf;
-use DiscogsHelper\Session;
+use DiscogsHelper\Http\Session;
 
 $styles = '<style>
 .button-groups {

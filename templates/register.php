@@ -4,7 +4,7 @@
 /** @var string|null $styles Page-specific styles */
 /** @var string|null $error Error message if registration failed */
 
-use DiscogsHelper\Auth;
+use DiscogsHelper\Security\Auth;
 use DiscogsHelper\Security\Csrf;
 
 $content = '

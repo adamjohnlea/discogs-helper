@@ -6,12 +6,12 @@
 /** @var string|null $styles Page-specific styles */
 /** @var int|null $id Release ID */
 
-use DiscogsHelper\Auth;
+use DiscogsHelper\Security\Auth;
 use DiscogsHelper\Database;
-use DiscogsHelper\DiscogsService;
-use DiscogsHelper\Logger;
+use DiscogsHelper\Services\Discogs\DiscogsService;
+use DiscogsHelper\Logging\Logger;
 use DiscogsHelper\Security\Csrf;
-use DiscogsHelper\Session;
+use DiscogsHelper\Http\Session;
 
 // Check if user has valid Discogs credentials
 if (!isset($discogs)) {

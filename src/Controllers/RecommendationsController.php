@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace DiscogsHelper\Controllers;
 
-use DiscogsHelper\Auth;
-use DiscogsHelper\Database;
+use DiscogsHelper\Security\Auth;
+use DiscogsHelper\Database\Database;
 use DiscogsHelper\Services\LastFmService;
-use DiscogsHelper\Logger;
-use DiscogsHelper\Session;
+use DiscogsHelper\Logging\Logger;
+use DiscogsHelper\Http\Session;
+use Exception;
 
 final class RecommendationsController
 {

@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-namespace DiscogsHelper;
+namespace DiscogsHelper\Http;
+
+use DiscogsHelper\Logging\Logger;
 
 final class Session
 {

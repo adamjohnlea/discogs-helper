@@ -7,10 +7,10 @@ declare(strict_types=1);
 /** @var DiscogsService $discogs Discogs service instance */
 
 use DiscogsHelper\Security\Csrf;
-use DiscogsHelper\Logger;
+use DiscogsHelper\Logging\Logger;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
-use DiscogsHelper\Session;
+use DiscogsHelper\Http\Session;
 
 header('Content-Type: application/json');
 

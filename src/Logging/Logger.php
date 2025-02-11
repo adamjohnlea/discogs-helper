@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace DiscogsHelper;
+namespace DiscogsHelper\Logging;
 
 use DiscogsHelper\Logging\LogManager;
+use RuntimeException;
 
 final class Logger
 {
